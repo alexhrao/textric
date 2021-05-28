@@ -1,6 +1,3 @@
-
-// File for shared types, interfaces, and enums within Textric.
-
 /**
  * An enum to denote the different types of textric messages.
  * 
@@ -25,7 +22,7 @@
 /**
  * The interface for messages in textric
  */
-interface Message {
+export interface Message {
 
     // Fields
     dst: string;        // destination
