@@ -6,18 +6,18 @@ import { MessageType } from "./MessageType";
 class Message {
 
     // Fields
-    dst: String;        // destination
-    src: String;        // source
+    dst: string;        // destination
+    src: string;        // source
     timeLocal: Date;    // local timestamp
     timeServer: Date;   // textric server timestamp
     type: MessageType;  // type of message
     idNumber: number;   // id number for the message
     ref: number[];        // id numbers of referenced messages as array (can reference multiple messages)
-    payload: String;    // payload of message
+    payload: string;    // payload of message
 
     // Constructor
-    constructor( dst: String, src: String, timeLocal: Date, timeServer: Date,
-        type: MessageType, idNumber: number, ref: number[], payload: String) {
+    constructor( dst: string, src: string, timeLocal: Date, timeServer: Date,
+        type: MessageType, idNumber: number, ref: number[], payload: string) {
         
         this.dst = dst;
         this.src = src;
@@ -30,8 +30,8 @@ class Message {
     }
 
     // Static factory methods for each type of message with message type preset
-    public static makeMessage(dst:String, src:String, idNumber:number, 
-        payload:String, isServer:boolean): Message {
+    public static makeMessage(dst:string, src:string, idNumber:number, 
+        payload:string, isServer:boolean): Message {
         if (isServer) {
             return new Message(dst, src, new Date(), new Date(), 
             MessageType.MSG, idNumber, null, payload);
@@ -43,8 +43,8 @@ class Message {
 
     // Note: replies and reactions will probably never come from the server but 
     // including support just in case.
-    public static makeReply(dst:String, src:String, idNumber:number, 
-        ref:number[], payload:String, isServer:boolean): Message {
+    public static makeReply(dst:string, src:string, idNumber:number, 
+        ref:number[], payload:string, isServer:boolean): Message {
         if (isServer) {
             return new Message(dst, src, new Date(), new Date(), 
             MessageType.RPLY, idNumber, ref, payload);
@@ -54,8 +54,8 @@ class Message {
         }
     }
 
-    public static makeReact(dst:String, src:String, idNumber:number, 
-        ref:number[], payload:String, isServer:boolean): Message {
+    public static makeReact(dst:string, src:string, idNumber:number, 
+        ref:number[], payload:string, isServer:boolean): Message {
         if (isServer) {
             return new Message(dst, src, new Date(), new Date(), 
             MessageType.REAC, idNumber, ref, payload);
@@ -67,8 +67,8 @@ class Message {
 
     // I feel like errors and keep-alives will only be sent from the server, 
     // but including support in case.
-    public static makeError(dst:String, src:String, idNumber:number, 
-        ref:number[], payload:String, isServer:boolean): Message {
+    public static makeError(dst:string, src:string, idNumber:number, 
+        ref:number[], payload:string, isServer:boolean): Message {
         if (isServer) {
             return new Message(dst, src, new Date(), new Date(), 
             MessageType.ERR, idNumber, ref, payload);
@@ -78,7 +78,7 @@ class Message {
         }
     }
 
-    public static makeAlive(dst:String, src:String, idNumber:number, 
+    public static makeAlive(dst:string, src:string, idNumber:number, 
         isServer:boolean): Message {
         if (isServer) {
             return new Message(dst, src, new Date(), new Date(), 
@@ -89,7 +89,7 @@ class Message {
         }
     }
 
-    public static makeAck(dst:String, src:String, ref:number[], 
+    public static makeAck(dst:string, src:string, ref:number[], 
         isServer:boolean): Message {
         if (isServer) {
             return new Message(dst, src, new Date(), new Date(), 
@@ -102,8 +102,8 @@ class Message {
 
     // I also feel like this will never be sent from server. And we probably
     // don't need the ref field, but including in case.
-    public static makeDatabaseMessage(dst:String, src:String, idNumber:number, 
-        ref:number[], payload:String, isServer:boolean): Message {
+    public static makeDatabaseMessage(dst:string, src:string, idNumber:number, 
+        ref:number[], payload:string, isServer:boolean): Message {
         if (isServer) {
             return new Message(dst, src, new Date(), new Date(), 
             MessageType.DBM, idNumber, ref, payload);
