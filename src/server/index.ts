@@ -1,0 +1,201 @@
+import express from 'express';
+import WebSocket from 'ws';
+import { Server } from 'ws';
+
+import { addDevice, completeDevice, createUser, Device, getUser } from './user';
+import { DEInitResponse, HashAlgorithm, isDEInit, NONCE_LEN, SALT_LEN, isDEComplete, DeviceType, isWSAuth, isNewUser } from '@shared/types/authentication';
+import { fingerprint, generateNonce } from '@shared/auth';
+import { isMessage, Message, MessageType } from '@shared/types/Message';
+
+interface DeviceSocket {
+    userID: string;
+    deviceID: string;
+    fingerprint: string;
+    socket: WebSocket;
+}
+
+// Index with userID, then with deviceID
+const conns: { [userID: string]: { [deviceID: string]: DeviceSocket } } = {}
+
+const httpPort = 3000; // TODO: Get from CLI
+const wsPort = 8080; // TODO: Get from CLI
+
+// WebSockets
+const wss = new Server({
+    port: wsPort,
+});
+
+wss.on('listening', () => {
+    console.log(`SocketServer listening on port ${wsPort}`);
+})
+
+wss.on('connection', (ws) => {
+    let authed = false;
+    let dev: DeviceSocket;
+    ws.on('message', async (data) => {
+        // client does first volley...
+        if (!authed) {
+            try {
+                const msg = JSON.parse(data.toString('utf-8'));
+                if (!isWSAuth(msg)) {
+                    throw new Error("Invalid Payload");
+                }
+                // check it
+                const user = await getUser(msg.userID);
+                if (user.devices[msg.deviceID]?.fingerprint === msg.fingerprint) {
+                    // check if our user is there
+                    if (!(msg.userID in conns)) {
+                        conns[msg.userID] = {};
+                    }
+                    if (msg.deviceID in conns[msg.userID]) {
+                        // wut
+                        throw new Error("Device already listening...");
+                    }
+                    conns[msg.userID][msg.deviceID] = {
+                        deviceID: msg.deviceID,
+                        fingerprint: msg.fingerprint,
+                        userID: msg.userID,
+                        socket: ws,
+                    }
+                    const closer = () => {
+                        delete conns[msg.userID][msg.deviceID];
+                        if (Object.keys(conns[msg.userID]).length === 0) {
+                            delete conns[msg.userID][msg.deviceID];
+                        }
+                    };
+                    ws.on('error', closer);
+                    ws.on('close', closer);
+                    dev = conns[msg.userID][msg.deviceID];
+                    const success: Message = {
+                        dst: msg.userID,
+                        src: msg.userID,
+                        idNumber: -1,
+                        payload: "",
+                        ref: [],
+                        type: MessageType.AACK,
+                        timeLocal: Date.now(),
+                        timeServer: Date.now(),
+                    };
+                    ws.send(JSON.stringify(success));
+                    authed = true;
+                } else {
+                    throw new Error("Invalid Fingerprint");
+                }
+            } catch (e) {
+                const err: Message = {
+                    dst: dev.userID,
+                    src: dev.userID,
+                    idNumber: -1,
+                    payload: "",
+                    ref: [],
+                    timeLocal: Date.now(),
+                    timeServer: Date.now(),
+                    type: MessageType.ERR,
+                }
+                ws.send(JSON.stringify(err));
+                ws.close();
+            }
+            return;
+        }
+        try {
+            const msg = JSON.parse(data.toString('utf8'));
+            if (!isMessage(msg)) {
+                throw new Error("Invalid Payload");
+            }
+            // read the destination, send accordingly
+            // so... eventually, we'll need to manage queues for users with devices that aren't online...
+            // but I don't wanna do that right now. So for now, we're just going to send to devices that are awake
+            if (!(msg.dst in conns)) {
+                return;
+            } else {
+                msg.timeServer = Date.now();
+                Object.values(conns[msg.dst]).forEach(ds => {
+                    ds.socket.send(JSON.stringify(msg));
+                });
+            }
+        } catch (e) {
+            const err: Message = {
+                dst: dev.userID,
+                src: dev.userID,
+                idNumber: -1,
+                payload: "",
+                ref: [],
+                timeLocal: Date.now(),
+                timeServer: Date.now(),
+                type: MessageType.ERR,
+            }
+            ws.send(JSON.stringify(err));
+            return;
+        }
+    });
+})
+
+
+// express!
+const httpServer = express();
+httpServer.use(express.json());
+
+httpServer.post('/users', async (req, res) => {
+    if (!isNewUser(req.body)) {
+        res.sendStatus(400);
+        return;
+    }
+    await createUser(req.body);
+    res.sendStatus(204);
+});
+
+httpServer.post('/enroll', async (req, res) => {
+    // verify req.body
+    if (isDEInit(req.body)) {
+        const payload = req.body;
+        // look up user... how?
+        // TODO: Look @ local mongoDB stuff
+        // for now... can't find user. so just send back a random nonce + random salt
+        const resp: DEInitResponse = {
+            nonce: (await generateNonce(NONCE_LEN)).toString('base64'),
+            hashAlgorithm: HashAlgorithm.SHA256,
+            salt: '',
+        }
+        try {
+            const user = await getUser(payload.userID);
+            // success! fill in the salt, attach our hash (for checking later...)
+            resp.salt = user.salt;
+            const print = fingerprint({
+                deviceID: payload.deviceID,
+                hashAlg: user.hashalg,
+                nonce: resp.nonce,
+                passHash: user.passhash
+            });
+            addDevice(payload.userID, payload.deviceID, print);
+        } catch (e) {
+            // couldn't find! fill in w/ random salt
+            resp.salt = (await generateNonce(SALT_LEN)).toString('base64');
+        }
+        res.json(resp);
+    } else if (isDEComplete(req.body)) {
+        const payload = req.body;
+        try {
+            const dev: Device = {
+                fingerprint: payload.hash,
+                verified: true,
+                id: payload.deviceID,
+                info: {
+                    name: payload.info?.name ?? payload.deviceID,
+                    os: payload.info?.os ?? 'Unknown',
+                    type: payload.info?.type ?? DeviceType.Unknown,
+                },
+            };
+            await completeDevice(payload.userID, dev);
+            res.sendStatus(204);
+        } catch (e) {
+            res.sendStatus(401);
+        }
+    } else {
+        res.sendStatus(400);
+        return;
+    }
+});
+
+httpServer.listen(httpPort, () => {
+    console.log(`HTTPServer listening on port ${httpPort}`);
+});
