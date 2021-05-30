@@ -1,11 +1,30 @@
 import express from 'express';
 import WebSocket from 'ws';
 import { Server } from 'ws';
+import { Arguments } from 'yargs';
+import yargs from 'yargs/yargs';
+import { hideBin } from 'yargs/helpers';
 
 import { addDevice, completeDevice, createUser, Device, getUser } from './user';
 import { DEInitResponse, HashAlgorithm, isDEInit, NONCE_LEN, SALT_LEN, isDEComplete, DeviceType, isWSAuth, isNewUser } from '@shared/types/authentication';
 import { fingerprint, generateNonce } from '@shared/auth';
 import { isMessage, Message, MessageType } from '@shared/types/Message';
+
+interface ServerOptions extends Arguments {
+    "server-port"?: number;
+    "socket-port"?: number;
+}
+
+const argv = yargs(hideBin(process.argv)).options({
+    "server-port": {
+        type: 'number',
+        describe: 'The port to serve the HTTP express application from. Defaults to $SERVER_PORT or 3000.',
+    },
+    "socket-port": {
+        type: 'number',
+        describe: 'The port to serve the WebSocket server from. Defaults to $SOCKET_PORT or 8080.',
+    },
+}).argv as ServerOptions;
 
 interface DeviceSocket {
     userID: string;
@@ -13,12 +32,16 @@ interface DeviceSocket {
     fingerprint: string;
     socket: WebSocket;
 }
-
+interface ConnectionLibrary {
+    [userID: string]: {
+        [deviceID: string]: DeviceSocket;
+    }
+}
 // Index with userID, then with deviceID
-const conns: { [userID: string]: { [deviceID: string]: DeviceSocket } } = {}
+const conns: ConnectionLibrary = {}
 
-const httpPort = 3000; // TODO: Get from CLI
-const wsPort = 8080; // TODO: Get from CLI
+const httpPort = argv['server-port'] ?? parseInt(process.env.SERVER_PORT ?? '3000');
+const wsPort = argv['socket-port'] ?? parseInt(process.env.SOCKET_PORT ?? '8080');
 
 // WebSockets
 const wss = new Server({
