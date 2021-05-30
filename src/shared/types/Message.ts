@@ -31,56 +31,52 @@ interface DatabasePayload {
     // Eventually mirrors JSON payload we'll send to other device
 }
 
+// This is the types of message that the server sees. It contains source,
+// destination, field for the server to add its timestamp, and a payload,
+// which is assumed to be an encrypted ClientMessage.
+export interface ServerMessage {
+    src: Address;
+    dst: string|Address; // to include ErrorMessage
+    timeServer?: number; // made optional because client will not have this field
+    payload: string; // NOTE: Assumed to be decodeable to a ClientMessage
+}
+
 export interface ErrorMessage {
     type: MessageType.ERR;
-    dst: string|Address;
-    timeServer: number;
+    errNo: number;
 }
 export interface NormalMessage {
     type: MessageType.MSG;
     id: number;
-    src: Address;
-    dst: string;
     timeLocal: number;
-    timeServer: number;
-    payload: string;
+    body: string;
 }
 
 export interface ReplyMessage {
     type: MessageType.RPLY;
     id: number;
-    src: Address;
-    dst: string;
     timeLocal: number;
-    timeServer: number;
-    payload: string;
+    body: string;
     ref: number[];
 }
 
 export interface ReacMessage {
     type: MessageType.REAC;
     id: number;
-    src: Address;
-    dst: string;
     timeLocal: number;
-    timeServer: number;
-    payload: string; // Single emoji
+    body: string; // Single emoji
     ref: number;
 }
 
 export interface AckMessage {
     type: MessageType.ACK;
     id: number;
-    src: Address;
-    dst: string;
     timeLocal: number;
-    timeServer: number;
     ref: number;
 }
 
 export interface AuthMessage {
     type: MessageType.AACK;
-    timeServer: number;
 }
 
 export interface AliveMessage {
@@ -89,20 +85,15 @@ export interface AliveMessage {
 
 export interface DataMessage {
     type: MessageType.DATA;
-    src: Address;
-    dst: Address;
-    payload: DatabasePayload;
+    body: DatabasePayload;
 }
 
-export type Message = ErrorMessage | NormalMessage | ReplyMessage | ReacMessage | AckMessage | AuthMessage | AliveMessage | DataMessage;
+export type ClientMessage = ErrorMessage | NormalMessage | ReplyMessage | ReacMessage | AckMessage | AuthMessage | AliveMessage | DataMessage;
 export function isCommMessage(msg: unknown): msg is NormalMessage|ReplyMessage|ReacMessage|AckMessage {
     if (typeof msg !== 'object' || msg === null || msg === undefined) {
         return false;
     } else if (
-        'dst' in msg &&
-        'src' in msg &&
         'timeLocal' in msg &&
-        'timeServer' in msg &&
         'type' in msg &&
         'id' in msg
     ) {
