@@ -8,7 +8,7 @@ import { hideBin } from 'yargs/helpers';
 import { addDevice, completeDevice, createUser, Device, getUser } from './user';
 import { DEInitResponse, HashAlgorithm, isDEInit, NONCE_LEN, SALT_LEN, isDEComplete, DeviceType, isWSAuth, isNewUser } from '@shared/types/authentication';
 import { fingerprint, generateNonce } from '@shared/auth';
-import { isMessage, Message, MessageType } from '@shared/types/Message';
+import { AuthMessage, ErrorMessage, isCommMessage, Message, MessageType } from '@shared/types/Message';
 
 interface ServerOptions extends Arguments {
     "server-port"?: number;
@@ -89,14 +89,8 @@ wss.on('connection', (ws) => {
                     ws.on('error', closer);
                     ws.on('close', closer);
                     dev = conns[msg.userID][msg.deviceID];
-                    const success: Message = {
-                        dst: msg.userID,
-                        src: msg.userID,
-                        idNumber: -1,
-                        payload: "",
-                        ref: [],
+                    const success: AuthMessage = {
                         type: MessageType.AACK,
-                        timeLocal: Date.now(),
                         timeServer: Date.now(),
                     };
                     ws.send(JSON.stringify(success));
@@ -105,16 +99,11 @@ wss.on('connection', (ws) => {
                     throw new Error("Invalid Fingerprint");
                 }
             } catch (e) {
-                const err: Message = {
+                const err: ErrorMessage = {
                     dst: dev.userID,
-                    src: dev.userID,
-                    idNumber: -1,
-                    payload: "",
-                    ref: [],
-                    timeLocal: Date.now(),
                     timeServer: Date.now(),
                     type: MessageType.ERR,
-                }
+                };
                 ws.send(JSON.stringify(err));
                 ws.close();
             }
@@ -122,7 +111,7 @@ wss.on('connection', (ws) => {
         }
         try {
             const msg = JSON.parse(data.toString('utf8'));
-            if (!isMessage(msg)) {
+            if (!isCommMessage(msg)) {
                 throw new Error("Invalid Payload");
             }
             // read the destination, send accordingly
@@ -137,16 +126,11 @@ wss.on('connection', (ws) => {
                 });
             }
         } catch (e) {
-            const err: Message = {
+            const err: ErrorMessage = {
                 dst: dev.userID,
-                src: dev.userID,
-                idNumber: -1,
-                payload: "",
-                ref: [],
-                timeLocal: Date.now(),
                 timeServer: Date.now(),
                 type: MessageType.ERR,
-            }
+            };
             ws.send(JSON.stringify(err));
             return;
         }
