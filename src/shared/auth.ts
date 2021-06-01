@@ -5,7 +5,7 @@ import {
     ServerHashPayload,
     isServerHash,
     PasswordHash,
-    SALT_LEN
+    SALT_LEN,
 } from './types/authentication';
 
 function translateHash(alg: HashAlgorithm): Hash {
@@ -19,7 +19,7 @@ function translateHash(alg: HashAlgorithm): Hash {
 
 export async function hashPassword(
     pass: string,
-    alg: HashAlgorithm
+    alg: HashAlgorithm,
 ): Promise<PasswordHash> {
     const salt = (await generateNonce(SALT_LEN)).toString('base64');
     const hasher = translateHash(alg);
@@ -32,7 +32,7 @@ export async function hashPassword(
 export function fingerprint(payload: DeviceHashPayload): string;
 export function fingerprint(payload: ServerHashPayload): string;
 export function fingerprint(
-    payload: DeviceHashPayload | ServerHashPayload
+    payload: DeviceHashPayload | ServerHashPayload,
 ): string {
     const hasher = translateHash(payload.hashAlg);
     if (isServerHash(payload)) {

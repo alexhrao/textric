@@ -18,7 +18,7 @@ export enum MessageType {
     ACK,
     AACK,
     ALIV,
-    DATA
+    DATA,
 }
 
 export interface Address {
@@ -333,7 +333,7 @@ export function isAddress(addr: unknown): addr is Address {
 
 // TODO: Update this when database payload is updated
 export function isDatabasePayload(
-    payload: unknown
+    payload: unknown,
 ): payload is DatabasePayload {
     // if (typeof payload !== 'object' || payload === null || payload === undefined) {
     //     return false;

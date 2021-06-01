@@ -2,7 +2,7 @@ import { hashPassword } from '../shared/auth';
 import {
     DeviceType,
     HashAlgorithm,
-    NewUserPayload
+    NewUserPayload,
 } from '../shared/types/authentication';
 import { promises as fs } from 'fs';
 import { randomInt } from 'crypto';
@@ -82,7 +82,7 @@ export async function createUser(user: NewUserPayload): Promise<void> {
         devices: {},
         hashalg: hash.alg,
         passhash: hash.hash,
-        salt: hash.salt
+        salt: hash.salt,
     };
     // TODO: Save somewhere...?
 }
@@ -98,7 +98,7 @@ export async function getUser(handle: string): Promise<User> {
 export async function revokeDevice(
     handle: string,
     deviceID: string,
-    print: string
+    print: string,
 ): Promise<void> {
     try {
         const user = await getUser(handle);
@@ -117,7 +117,7 @@ export async function revokeDevice(
 export async function addDevice(
     handle: string,
     deviceID: string,
-    print: string
+    print: string,
 ): Promise<void> {
     const user = await getUser(handle);
     if (deviceID in user.devices && user.devices[deviceID].verified) {
@@ -131,15 +131,15 @@ export async function addDevice(
         info: {
             name: 'Unverified',
             os: 'Unverified',
-            type: DeviceType.Unknown
-        }
+            type: DeviceType.Unknown,
+        },
     };
     await updateUser(user);
 }
 
 export async function completeDevice(
     handle: string,
-    device: Device
+    device: Device,
 ): Promise<void> {
     // check if prints match
     try {

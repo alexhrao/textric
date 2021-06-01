@@ -16,14 +16,14 @@ export function isNewUser(user: unknown): user is NewUserPayload {
 }
 
 export enum HashAlgorithm {
-    SHA256 = 1
+    SHA256 = 1,
 }
 
 export enum DeviceType {
     Mobile = 'mobile',
     Tablet = 'tablet',
     Desktop = 'desktop',
-    Unknown = 'unknown'
+    Unknown = 'unknown',
 }
 
 // Interfaces for device enrollment
@@ -113,7 +113,7 @@ export interface ServerHashPayload {
     passHash: string;
 }
 export function isServerHash(
-    hash: DeviceHashPayload | ServerHashPayload
+    hash: DeviceHashPayload | ServerHashPayload,
 ): hash is ServerHashPayload {
     if ('passHash' in hash) {
         return true;

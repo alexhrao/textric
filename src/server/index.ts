@@ -11,7 +11,7 @@ import {
     createUser,
     Device,
     generateHandle,
-    getUser
+    getUser,
 } from './user';
 import {
     DEInitResponse,
@@ -22,14 +22,14 @@ import {
     isDEComplete,
     DeviceType,
     isWSAuth,
-    isNewUser
+    isNewUser,
 } from '../shared/types/authentication';
 import { fingerprint, generateNonce } from '../shared/auth';
 import {
     AuthMessage,
     ErrorMessage,
     isClientMessage,
-    MessageType
+    MessageType,
 } from '../shared/types/Message';
 
 interface ServerOptions extends Arguments {
@@ -41,13 +41,13 @@ const argv = yargs(hideBin(process.argv)).options({
     'server-port': {
         type: 'number',
         describe:
-            'The port to serve the HTTP express application from. Defaults to $SERVER_PORT or 3000.'
+            'The port to serve the HTTP express application from. Defaults to $SERVER_PORT or 3000.',
     },
     'socket-port': {
         type: 'number',
         describe:
-            'The port to serve the WebSocket server from. Defaults to $SOCKET_PORT or 8080.'
-    }
+            'The port to serve the WebSocket server from. Defaults to $SOCKET_PORT or 8080.',
+    },
 }).argv as ServerOptions;
 
 interface DeviceSocket {
@@ -71,7 +71,7 @@ const wsPort =
 
 // WebSockets
 const wss = new Server({
-    port: wsPort
+    port: wsPort,
 });
 
 wss.on('listening', () => {
@@ -106,7 +106,7 @@ wss.on('connection', (ws) => {
                         deviceID: msg.deviceID,
                         fingerprint: msg.fingerprint,
                         userID: msg.userID,
-                        socket: ws
+                        socket: ws,
                     };
                     const closer = () => {
                         delete conns[msg.userID][msg.deviceID];
@@ -118,7 +118,7 @@ wss.on('connection', (ws) => {
                     ws.on('close', closer);
                     dev = conns[msg.userID][msg.deviceID];
                     const success: AuthMessage = {
-                        type: MessageType.AACK
+                        type: MessageType.AACK,
                     };
                     ws.send(JSON.stringify(success));
                     authed = true;
@@ -128,7 +128,7 @@ wss.on('connection', (ws) => {
             } catch (e) {
                 const err: ErrorMessage = {
                     type: MessageType.ERR,
-                    errNo: NaN
+                    errNo: NaN,
                 };
                 ws.send(JSON.stringify(err));
                 ws.close();
@@ -155,7 +155,7 @@ wss.on('connection', (ws) => {
         } catch (e) {
             const err: ErrorMessage = {
                 type: MessageType.ERR,
-                errNo: NaN
+                errNo: NaN,
             };
             ws.send(JSON.stringify(err));
             return;
@@ -196,7 +196,7 @@ httpServer.post('/enroll', async (req, res) => {
         const resp: DEInitResponse = {
             nonce: (await generateNonce(NONCE_LEN)).toString('base64'),
             hashAlgorithm: HashAlgorithm.SHA256,
-            salt: ''
+            salt: '',
         };
         try {
             const user = await getUser(payload.userID);
@@ -206,7 +206,7 @@ httpServer.post('/enroll', async (req, res) => {
                 deviceID: payload.deviceID,
                 hashAlg: user.hashalg,
                 nonce: resp.nonce,
-                passHash: user.passhash
+                passHash: user.passhash,
             });
             addDevice(payload.userID, payload.deviceID, print);
         } catch (e) {
@@ -224,8 +224,8 @@ httpServer.post('/enroll', async (req, res) => {
                 info: {
                     name: payload.info?.name ?? payload.deviceID,
                     os: payload.info?.os ?? 'Unknown',
-                    type: payload.info?.type ?? DeviceType.Unknown
-                }
+                    type: payload.info?.type ?? DeviceType.Unknown,
+                },
             };
             await completeDevice(payload.userID, dev);
             res.sendStatus(204);

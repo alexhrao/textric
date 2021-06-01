@@ -37,7 +37,7 @@ describe('Address Tests', function () {
         it('Should return true on correctly structured Address', function () {
             const goodAddress: Message.Address = {
                 userID: 'TEST',
-                deviceID: 'TEST'
+                deviceID: 'TEST',
             };
             expect(Message.isAddress(goodAddress)).to.equal(true);
         });
@@ -81,7 +81,7 @@ describe('AckMessage Tests', function () {
             const noID: unknown = {
                 type: Message.MessageType.ACK,
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isAckMessage(noID)).to.equal(false);
         });
@@ -89,7 +89,7 @@ describe('AckMessage Tests', function () {
             const noTimeLocal: unknown = {
                 type: Message.MessageType.ACK,
                 id: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isAckMessage(noTimeLocal)).to.equal(false);
         });
@@ -97,7 +97,7 @@ describe('AckMessage Tests', function () {
             const noRef: unknown = {
                 type: Message.MessageType.ACK,
                 id: 1,
-                timeLocal: 1
+                timeLocal: 1,
             };
             expect(Message.isAckMessage(noRef)).to.equal(false);
         });
@@ -108,7 +108,7 @@ describe('AckMessage Tests', function () {
                 type: Message.MessageType.ERR,
                 id: 1,
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isAckMessage(badType)).to.equal(false);
         });
@@ -117,7 +117,7 @@ describe('AckMessage Tests', function () {
                 type: Message.MessageType.ACK,
                 id: 'hello',
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isAckMessage(badID)).to.equal(false);
         });
@@ -126,7 +126,7 @@ describe('AckMessage Tests', function () {
                 type: Message.MessageType.ACK,
                 id: 1,
                 timeLocal: 'hello',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isAckMessage(badTimeLocal)).to.equal(false);
         });
@@ -135,7 +135,7 @@ describe('AckMessage Tests', function () {
                 type: Message.MessageType.ACK,
                 id: 1,
                 timeLocal: 1,
-                ref: 'hello'
+                ref: 'hello',
             };
             expect(Message.isAckMessage(badRef)).to.equal(false);
         });
@@ -146,7 +146,7 @@ describe('AckMessage Tests', function () {
                 type: Message.MessageType.ACK,
                 id: 1,
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isAckMessage(goodAckMessage)).to.equal(true);
         });
@@ -155,7 +155,7 @@ describe('AckMessage Tests', function () {
                 type: Message.MessageType.ACK,
                 id: 1,
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isAckMessage(goodAckMessage)).to.equal(true);
         });
@@ -187,13 +187,13 @@ describe('AliveMessage Tests', function () {
     describe('Validate on properly formed AliveMessage and unknown type with proper fields', function () {
         it('Should return true on correctly structured AliveMessage', function () {
             const goodAliveMessage: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             expect(Message.isAliveMessage(goodAliveMessage)).to.equal(true);
         });
         it('Should return true on correctly structured unknown object', function () {
             const goodAliveMessage: unknown = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             expect(Message.isAliveMessage(goodAliveMessage)).to.equal(true);
         });
@@ -225,7 +225,7 @@ describe('AuthMessage Tests', function () {
     describe('Validate on properly formed AuthMessage and unknown type with proper fields', function () {
         it('Should return true on correctly structured AuthMessage', function () {
             const goodAuthMessage: Message.AuthMessage = {
-                type: Message.MessageType.AACK
+                type: Message.MessageType.AACK,
             };
             expect(Message.isAuthMessage(goodAuthMessage)).to.equal(true);
         });
@@ -264,7 +264,7 @@ describe('DataMessage Tests', function () {
             const dbPayload: Message.DatabasePayload = {};
             const badType: unknown = {
                 type: Message.MessageType.ERR,
-                body: dbPayload
+                body: dbPayload,
             };
             expect(Message.isDataMessage(badType)).to.equal(false);
         });
@@ -274,7 +274,7 @@ describe('DataMessage Tests', function () {
             const dbPayload: Message.DatabasePayload = {};
             const goodDataMessage: Message.DataMessage = {
                 type: Message.MessageType.DATA,
-                body: dbPayload
+                body: dbPayload,
             };
             expect(Message.isDataMessage(goodDataMessage)).to.equal(true);
         });
@@ -282,7 +282,7 @@ describe('DataMessage Tests', function () {
             const dbPayload: Message.DatabasePayload = {};
             const goodDataMessage: unknown = {
                 type: Message.MessageType.DATA,
-                body: dbPayload
+                body: dbPayload,
             };
             expect(Message.isDataMessage(goodDataMessage)).to.equal(true);
         });
@@ -315,14 +315,14 @@ describe('ErrorMessage Tests', function () {
         it('Should return false if type is not MessageType.ERR', function () {
             const badType: unknown = {
                 type: Message.MessageType.DATA,
-                errNo: 1
+                errNo: 1,
             };
             expect(Message.isErrorMessage(badType)).to.equal(false);
         });
         it('Should return false if errNo is not a number', function () {
             const badType: unknown = {
                 type: Message.MessageType.ERR,
-                errNo: 'HELLO'
+                errNo: 'HELLO',
             };
             expect(Message.isErrorMessage(badType)).to.equal(false);
         });
@@ -331,14 +331,14 @@ describe('ErrorMessage Tests', function () {
         it('Should return true on correctly structured ErrorMessage', function () {
             const goodErrorMessage: Message.ErrorMessage = {
                 type: Message.MessageType.ERR,
-                errNo: 1
+                errNo: 1,
             };
             expect(Message.isErrorMessage(goodErrorMessage)).to.equal(true);
         });
         it('Should return true on correctly structured unknown object', function () {
             const goodErrorMessage: unknown = {
                 type: Message.MessageType.ERR,
-                errNo: 1
+                errNo: 1,
             };
             expect(Message.isErrorMessage(goodErrorMessage)).to.equal(true);
         });
@@ -362,7 +362,7 @@ describe('NormalMessage Tests', function () {
             const noType: unknown = {
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(noType)).to.equal(false);
         });
@@ -370,7 +370,7 @@ describe('NormalMessage Tests', function () {
             const noID: unknown = {
                 type: Message.MessageType.MSG,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(noID)).to.equal(false);
         });
@@ -378,7 +378,7 @@ describe('NormalMessage Tests', function () {
             const noTimeLocal: unknown = {
                 type: Message.MessageType.MSG,
                 id: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(noTimeLocal)).to.equal(false);
         });
@@ -386,7 +386,7 @@ describe('NormalMessage Tests', function () {
             const noBody: unknown = {
                 type: Message.MessageType.MSG,
                 id: 1,
-                timeLocal: 1
+                timeLocal: 1,
             };
             expect(Message.isNormalMessage(noBody)).to.equal(false);
         });
@@ -397,7 +397,7 @@ describe('NormalMessage Tests', function () {
                 type: Message.MessageType.ERR,
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(badType)).to.equal(false);
         });
@@ -406,7 +406,7 @@ describe('NormalMessage Tests', function () {
                 type: Message.MessageType.MSG,
                 id: 'hello',
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(badID)).to.equal(false);
         });
@@ -415,7 +415,7 @@ describe('NormalMessage Tests', function () {
                 type: Message.MessageType.MSG,
                 id: 1,
                 timeLocal: 'hello',
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(badTimeLocal)).to.equal(false);
         });
@@ -424,7 +424,7 @@ describe('NormalMessage Tests', function () {
                 type: Message.MessageType.MSG,
                 id: 1,
                 timeLocal: 1,
-                body: 1
+                body: 1,
             };
             expect(Message.isNormalMessage(badBody)).to.equal(false);
         });
@@ -435,7 +435,7 @@ describe('NormalMessage Tests', function () {
                 type: Message.MessageType.MSG,
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(goodNormalMessage)).to.equal(true);
         });
@@ -444,7 +444,7 @@ describe('NormalMessage Tests', function () {
                 type: Message.MessageType.MSG,
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isNormalMessage(goodNormalMessage)).to.equal(true);
         });
@@ -469,7 +469,7 @@ describe('ReactMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(noType)).to.equal(false);
         });
@@ -478,7 +478,7 @@ describe('ReactMessage Tests', function () {
                 type: Message.MessageType.REAC,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(noID)).to.equal(false);
         });
@@ -487,7 +487,7 @@ describe('ReactMessage Tests', function () {
                 type: Message.MessageType.REAC,
                 id: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(noTimeLocal)).to.equal(false);
         });
@@ -496,7 +496,7 @@ describe('ReactMessage Tests', function () {
                 type: Message.MessageType.REAC,
                 id: 1,
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(noBody)).to.equal(false);
         });
@@ -505,7 +505,7 @@ describe('ReactMessage Tests', function () {
                 type: Message.MessageType.REAC,
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isReacMessage(noRef)).to.equal(false);
         });
@@ -517,7 +517,7 @@ describe('ReactMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(badType)).to.equal(false);
         });
@@ -527,7 +527,7 @@ describe('ReactMessage Tests', function () {
                 id: 'hello',
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(badID)).to.equal(false);
         });
@@ -537,7 +537,7 @@ describe('ReactMessage Tests', function () {
                 id: 1,
                 timeLocal: 'hello',
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(badTimeLocal)).to.equal(false);
         });
@@ -547,7 +547,7 @@ describe('ReactMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(badBody)).to.equal(false);
         });
@@ -557,7 +557,7 @@ describe('ReactMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 'hello'
+                ref: 'hello',
             };
             expect(Message.isReacMessage(badRef)).to.equal(false);
         });
@@ -569,7 +569,7 @@ describe('ReactMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(goodReacMessage)).to.equal(true);
         });
@@ -579,7 +579,7 @@ describe('ReactMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isReacMessage(goodReacMessage)).to.equal(true);
         });
@@ -604,7 +604,7 @@ describe('ReplyMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(noType)).to.equal(false);
         });
@@ -613,7 +613,7 @@ describe('ReplyMessage Tests', function () {
                 type: Message.MessageType.RPLY,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(noID)).to.equal(false);
         });
@@ -622,7 +622,7 @@ describe('ReplyMessage Tests', function () {
                 type: Message.MessageType.RPLY,
                 id: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(noTimeLocal)).to.equal(false);
         });
@@ -631,7 +631,7 @@ describe('ReplyMessage Tests', function () {
                 type: Message.MessageType.RPLY,
                 id: 1,
                 timeLocal: 1,
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(noBody)).to.equal(false);
         });
@@ -640,7 +640,7 @@ describe('ReplyMessage Tests', function () {
                 type: Message.MessageType.RPLY,
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isReplyMessage(noRef)).to.equal(false);
         });
@@ -652,7 +652,7 @@ describe('ReplyMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(badType)).to.equal(false);
         });
@@ -662,7 +662,7 @@ describe('ReplyMessage Tests', function () {
                 id: 'hello',
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(badID)).to.equal(false);
         });
@@ -672,7 +672,7 @@ describe('ReplyMessage Tests', function () {
                 id: 1,
                 timeLocal: 'hello',
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(badTimeLocal)).to.equal(false);
         });
@@ -682,12 +682,40 @@ describe('ReplyMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 1,
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(badBody)).to.equal(false);
         });
-        // it('Should return false if ref is not number array', function() { //idk how to check this
-        // });
+        it('Should return false if ref is not number array', function () {
+            const badBody: unknown = {
+                type: Message.MessageType.RPLY,
+                id: 1,
+                timeLocal: 1,
+                body: 1,
+                ref: 1,
+            };
+            expect(Message.isReplyMessage(badBody)).to.equal(false);
+        });
+        it('Should return false if ref is an empty array', function () {
+            const badBody: unknown = {
+                type: Message.MessageType.RPLY,
+                id: 1,
+                timeLocal: 1,
+                body: 1,
+                ref: [],
+            };
+            expect(Message.isReplyMessage(badBody)).to.equal(false);
+        });
+        it('Should return false if ref is a non-numeric array', function () {
+            const badBody: unknown = {
+                type: Message.MessageType.RPLY,
+                id: 1,
+                timeLocal: 1,
+                body: 1,
+                ref: ['bad'],
+            };
+            expect(Message.isReplyMessage(badBody)).to.equal(false);
+        });
     });
     describe('Validate on properly formed ReplyMessage and unknown type with proper fields', function () {
         it('Should return true on correctly structured ReplyMessage', function () {
@@ -696,7 +724,7 @@ describe('ReplyMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(goodReplyMessage)).to.equal(true);
         });
@@ -706,7 +734,7 @@ describe('ReplyMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isReplyMessage(goodReplyMessage)).to.equal(true);
         });
@@ -729,7 +757,7 @@ describe('isMessage Tests', function () {
         it('Should return true on Error Message', function () {
             const errMessage: Message.ErrorMessage = {
                 type: Message.MessageType.ERR,
-                errNo: 1
+                errNo: 1,
             };
             expect(Message.isMessage(errMessage)).to.equal(true);
         });
@@ -738,7 +766,7 @@ describe('isMessage Tests', function () {
                 type: Message.MessageType.MSG,
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isMessage(message)).to.equal(true);
         });
@@ -748,7 +776,7 @@ describe('isMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isMessage(replyMessage)).to.equal(true);
         });
@@ -758,7 +786,7 @@ describe('isMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isMessage(reacMessage)).to.equal(true);
         });
@@ -767,26 +795,26 @@ describe('isMessage Tests', function () {
                 type: Message.MessageType.ACK,
                 id: 1,
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isMessage(ack)).to.equal(true);
         });
         it('Should return true on Auth Message', function () {
             const authMessage: Message.AuthMessage = {
-                type: Message.MessageType.AACK
+                type: Message.MessageType.AACK,
             };
             expect(Message.isMessage(authMessage)).to.equal(true);
         });
         it('Should return true on Alive Message', function () {
             const aliveMessage: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             expect(Message.isMessage(aliveMessage)).to.equal(true);
         });
         it('Should return true on Data Message', function () {
             const dbm: Message.DataMessage = {
                 type: Message.MessageType.DATA,
-                body: {}
+                body: {},
             };
             expect(Message.isMessage(dbm)).to.equal(true);
         });
@@ -795,7 +823,7 @@ describe('isMessage Tests', function () {
         it('Should return false on non-message object', function () {
             const addr: Message.Address = {
                 userID: 'hello',
-                deviceID: 'world'
+                deviceID: 'world',
             };
             expect(Message.isMessage(addr)).to.equal(false);
         });
@@ -820,7 +848,7 @@ describe('isCommMessage Tests', function () {
                 type: Message.MessageType.MSG,
                 id: 1,
                 timeLocal: 1,
-                body: 'Hello world!'
+                body: 'Hello world!',
             };
             expect(Message.isCommMessage(message)).to.equal(true);
         });
@@ -830,7 +858,7 @@ describe('isCommMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: [1]
+                ref: [1],
             };
             expect(Message.isCommMessage(replyMessage)).to.equal(true);
         });
@@ -840,7 +868,7 @@ describe('isCommMessage Tests', function () {
                 id: 1,
                 timeLocal: 1,
                 body: 'Hello world!',
-                ref: 1
+                ref: 1,
             };
             expect(Message.isCommMessage(reacMessage)).to.equal(true);
         });
@@ -849,7 +877,7 @@ describe('isCommMessage Tests', function () {
                 type: Message.MessageType.ACK,
                 id: 1,
                 timeLocal: 1,
-                ref: 1
+                ref: 1,
             };
             expect(Message.isCommMessage(ack)).to.equal(true);
         });
@@ -858,33 +886,33 @@ describe('isCommMessage Tests', function () {
         it('Should return false on Error Message', function () {
             const errMessage: Message.ErrorMessage = {
                 type: Message.MessageType.ERR,
-                errNo: 1
+                errNo: 1,
             };
             expect(Message.isCommMessage(errMessage)).to.equal(false);
         });
         it('Should return false on Auth Message', function () {
             const authMessage: Message.AuthMessage = {
-                type: Message.MessageType.AACK
+                type: Message.MessageType.AACK,
             };
             expect(Message.isCommMessage(authMessage)).to.equal(false);
         });
         it('Should return false on Alive Message', function () {
             const aliveMessage: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             expect(Message.isCommMessage(aliveMessage)).to.equal(false);
         });
         it('Should return false on Data Message', function () {
             const dbm: Message.DataMessage = {
                 type: Message.MessageType.DATA,
-                body: {}
+                body: {},
             };
             expect(Message.isCommMessage(dbm)).to.equal(false);
         });
         it('Should return false on non-message object', function () {
             const addr: Message.Address = {
                 userID: 'hello',
-                deviceID: 'world'
+                deviceID: 'world',
             };
             expect(Message.isCommMessage(addr)).to.equal(false);
         });
@@ -907,36 +935,36 @@ describe('isClientMessage Tests', function () {
         it('Should return false if missing src field', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const noSrc: unknown = {
                 dst: tempAddr,
                 timeServer: 1,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(noSrc)).to.equal(false);
         });
         it('Should return false if missing dst field', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const noDst: unknown = {
                 src: tempAddr,
                 timeServer: 1,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(noDst)).to.equal(false);
         });
         it('Should return false if missing timeServer field', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const noTimeServer: unknown = {
                 src: tempAddr,
                 dst: tempAddr,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(noTimeServer)).to.equal(false);
         });
@@ -945,7 +973,7 @@ describe('isClientMessage Tests', function () {
             const noPayload: unknown = {
                 src: tempAddr,
                 dst: tempAddr,
-                timeServer: 1
+                timeServer: 1,
             };
             expect(Message.isClientMessage(noPayload)).to.equal(false);
         });
@@ -954,39 +982,39 @@ describe('isClientMessage Tests', function () {
         it('Should return false if src is not an Address', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const badSrc: unknown = {
                 src: 'hi',
                 dst: tempAddr,
                 timeServer: 1,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(badSrc)).to.equal(false);
         });
         it('Should return false if dst is not a string or Address', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const badDst: unknown = {
                 src: tempAddr,
                 dst: 1,
                 timeServer: 1,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(badDst)).to.equal(false);
         });
         it('Should return false if timeServer is not a number', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const badTimeServer: unknown = {
                 src: tempAddr,
                 dst: tempAddr,
                 timeServer: 'hi',
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(badTimeServer)).to.equal(false);
         });
@@ -996,7 +1024,7 @@ describe('isClientMessage Tests', function () {
                 src: 'hi',
                 dst: tempAddr,
                 timeServer: 1,
-                payload: tempAddr
+                payload: tempAddr,
             };
             expect(Message.isClientMessage(badPayload)).to.equal(false);
         });
@@ -1005,39 +1033,39 @@ describe('isClientMessage Tests', function () {
         it('Should return true on proper ClientMessage with Address dst', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const clientMsg: Message.ClientMessage = {
                 src: tempAddr,
                 dst: tempAddr,
                 timeServer: 1,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(clientMsg)).to.equal(true);
         });
         it('Should return true on proper ClientMessage with string dst', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const clientMsg: Message.ClientMessage = {
                 src: tempAddr,
                 dst: 'hello',
                 timeServer: 1,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(clientMsg)).to.equal(true);
         });
         it('Should return true on unknown with proper fields', function () {
             const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
-                type: Message.MessageType.ALIV
+                type: Message.MessageType.ALIV,
             };
             const clientMsg: Message.ClientMessage = {
                 src: tempAddr,
                 dst: tempAddr,
                 timeServer: 1,
-                payload: tempAlive
+                payload: tempAlive,
             };
             expect(Message.isClientMessage(clientMsg)).to.equal(true);
         });
@@ -1062,7 +1090,7 @@ describe('isServerMessage Tests', function () {
             const noSrc: unknown = {
                 dst: tempAddr,
                 timeServer: 1,
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(noSrc)).to.equal(false);
         });
@@ -1071,7 +1099,7 @@ describe('isServerMessage Tests', function () {
             const noDst: unknown = {
                 src: tempAddr,
                 timeServer: 1,
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(noDst)).to.equal(false);
         });
@@ -1080,7 +1108,7 @@ describe('isServerMessage Tests', function () {
             const noPayload: unknown = {
                 src: tempAddr,
                 dst: tempAddr,
-                timeServer: 1
+                timeServer: 1,
             };
             expect(Message.isServerMessage(noPayload)).to.equal(false);
         });
@@ -1092,7 +1120,7 @@ describe('isServerMessage Tests', function () {
                 src: 'hi',
                 dst: tempAddr,
                 timeServer: 1,
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(badSrc)).to.equal(false);
         });
@@ -1102,7 +1130,7 @@ describe('isServerMessage Tests', function () {
                 src: tempAddr,
                 dst: 1,
                 timeServer: 1,
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(badDst)).to.equal(false);
         });
@@ -1112,7 +1140,7 @@ describe('isServerMessage Tests', function () {
                 src: tempAddr,
                 dst: 'hello',
                 timeServer: 'hello',
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(badTimeServer)).to.equal(false);
         });
@@ -1122,7 +1150,7 @@ describe('isServerMessage Tests', function () {
                 src: 'hi',
                 dst: tempAddr,
                 timeServer: 1,
-                payload: tempAddr
+                payload: tempAddr,
             };
             expect(Message.isServerMessage(badPayload)).to.equal(false);
         });
@@ -1134,7 +1162,7 @@ describe('isServerMessage Tests', function () {
                 src: tempAddr,
                 dst: tempAddr,
                 timeServer: 1,
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(serverMsg)).to.equal(true);
         });
@@ -1144,7 +1172,7 @@ describe('isServerMessage Tests', function () {
                 src: tempAddr,
                 dst: 'hello',
                 timeServer: 1,
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(serverMsg)).to.equal(true);
         });
@@ -1153,7 +1181,7 @@ describe('isServerMessage Tests', function () {
             const serverMsg: Message.ServerMessage = {
                 src: tempAddr,
                 dst: 'hello',
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(serverMsg)).to.equal(true);
         });
@@ -1163,7 +1191,7 @@ describe('isServerMessage Tests', function () {
                 src: tempAddr,
                 dst: tempAddr,
                 timeServer: 1,
-                payload: 'hello'
+                payload: 'hello',
             };
             expect(Message.isServerMessage(serverMsg)).to.equal(true);
         });
