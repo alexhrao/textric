@@ -6,8 +6,8 @@
   "scripts": {
     "build": "rimraf dist && tsc --build test && rsync -a resources/ dist/",
     "server": "npm start",
-    "start": "node -r ts-node/register -r tsconfig-paths/register dist/server/index.js",
-    "client": "node -r ts-node/register -r tsconfig-paths/register dist/client/index.js",
+    "start": "node dist/server/index.js",
+    "client": "node dist/client/index.js",
     "test": "mocha dist/test/**/*.js",
     "lint": "eslint . --ext .ts"
   },

@@ -5,12 +5,12 @@ Cattle
 Dog
 Donkey
 Goat
-Guinea pig
+Guineapig
 Horse
 Pig
 Rabbit
 Sheep
-Water buffalo
+Waterbuffalo
 Chicken
 Duck
 Goose
@@ -36,20 +36,20 @@ Antelope
 Antlion
 Aphid
 leopard
-Arctic Fox
-Arctic Wolf
+ArcticFox
+ArcticWolf
 Armadillo
-Arrow crab
+Arrowcrab
 Baboon
 Badger
-Bald eagle
+Baldeagle
 Bandicoot
 Barnacle
 Barracuda
 Basilisk
 Bass
 Bat
-Beaked whale
+Beakedwhale
 Bear
 Beaver
 Bedbug
@@ -58,18 +58,18 @@ Beetle
 Bird
 Bison
 Blackbird
-Black panther
-Black widow spider
-Blue bird
-Blue jay
-Blue whale
+Blackpanther
+Blackwidowspider
+Bluebird
+Bluejay
+Bluewhale
 Boa
 Boar
 Bobcat
 Bobolink
 Bonobo
 Booby
-Box jellyfish
+Boxjellyfish
 Bovid
 Buffalo
 Bug
@@ -105,7 +105,7 @@ Cow
 Coyote
 Crab
 Crane
-Crane fly
+Cranefly
 Crawdad
 Crayfish
 Cricket
@@ -141,20 +141,20 @@ Fish
 Flamingo
 Flea
 Fly
-Flying fish
+Flyingfish
 Fowl
 Fox
 Frog
-Fruit bat
+Fruitbat
 Gamefowl
 Galliform
 Gazelle
 Gecko
 Gerbil
-Giant panda
-Giant squid
+Giantpanda
+Giantsquid
 Gibbon
-Gila monster
+Gilamonster
 Giraffe
 Goat
 Goldfish
@@ -162,27 +162,27 @@ Goose
 Gopher
 Gorilla
 Grasshopper
-Great blue heron
-Great white shark
-Grizzly bear
-Land shark
+Greatblueheron
+Greatwhiteshark
+Grizzlybear
+Landshark
 sloth
 Grouse
 Guan
 Guanaco
 Guineafowl
-Guinea pig
+Guineapig
 Gull
 Guppy
 Haddock
 Halibut
-Hammerhead shark
+Hammerheadshark
 Hamster
 Hare
 Harrier
 Hawk
 Hedgehog
-Hermit crab
+Hermitcrab
 Heron
 Herring
 Hippopotamus
@@ -191,7 +191,7 @@ Hornet
 Horse
 Hoverfly
 Hummingbird
-Humpback whale
+Humpbackwhale
 Hyena
 Iguana
 Impala
@@ -206,12 +206,12 @@ Kite
 Kiwi
 Koala
 Koi
-Komodo dragon
+Komododragon
 Krill
 Ladybug
 Lamprey
 Landfowl
-Land snail
+Landsnail
 Leech
 Lemming
 Lemur
@@ -232,7 +232,7 @@ Magpie
 Mammal
 Manatee
 Mandrill
-Manta ray
+Mantaray
 Marlin
 Marmoset
 Marmot
@@ -247,17 +247,17 @@ Mite
 Mockingbird
 Mollusk
 Mongoose
-Monitor lizard
+Monitorlizard
 Moose
-Mountain goat
+Mountaingoat
 Muskox
 Narwhal
 Newt
-New World quail
+NewWorldquail
 Nightingale
 Ocelot
 Octopus
-Old World quail
+OldWorldquail
 Opossum
 Orangutan
 Orca
@@ -276,24 +276,24 @@ Peafowl
 Pelican
 Penguin
 Perch
-Peregrine falcon
+Peregrinefalcon
 Pheasant
 Pig
 Pigeon
 Pike
-Pilot whale
+Pilotwhale
 Pinniped
 Piranha
 Planarian
 Platypus
-Polar bear
+Polarbear
 Pony
 Porcupine
 Porpoise
 Possum
-Prairie dog
+Prairiedog
 Prawn
-Praying mantis
+Prayingmantis
 Ptarmigan
 Puffin
 Puma
@@ -303,31 +303,31 @@ Quelea
 Quokka
 Rabbit
 Raccoon
-Rainbow trout
+Rainbowtrout
 Rat
 Rattlesnake
 Raven
-Ray (Batoidea)
-Ray (Rajiformes)
-Red panda
+Ray(Batoidea)
+Ray(Rajiformes)
+Redpanda
 Reindeer
 Rhinoceros
-Right whale
+Rightwhale
 Roadrunner
 Rook
 Rooster
 Roundworm
-Saber-toothed tiger
+Saber-toothedtiger
 Sailfish
 Salamander
 Salmon
 Sawfish
-Scale insect
+Scaleinsect
 Scallop
 Scorpion
 Seahorse
-Sea lion
-Sea snail
+Sealion
+Seasnail
 Shark
 Sheep
 Shrimp
@@ -337,8 +337,8 @@ Sloth
 Smelt
 Snail
 Snipe
-Snow leopard
-Sockeye salmon
+Snowleopard
+Sockeyesalmon
 Sole
 Sparrow
 Spider
@@ -346,13 +346,13 @@ Spoonbill
 Squid
 Squirrel
 Starfish
-Star-nosed mole
-Steelhead trout
+Star-nosedmole
+Steelheadtrout
 Stingray
 Stoat
 Stork
 Sturgeon
-Sugar glider
+Sugarglider
 Swallow
 Swan
 Swift
@@ -362,16 +362,16 @@ Tahr
 Takin
 Tapir
 Tarsier
-Tasmanian devil
+Tasmaniandevil
 Tern
 Thrush
 Tiger
-Tiger shark
+Tigershark
 Tiglon
 Tortoise
 Toucan
-Trapdoor spider
-Tree frog
+Trapdoorspider
+Treefrog
 Trout
 Tuna
 Turkey
@@ -386,13 +386,13 @@ Wallaby
 Walrus
 Wasp
 Warbler
-Water Boa
-Water buffalo
+WaterBoa
+Waterbuffalo
 Weasel
 Whale
 Whippet
 Whitefish
-Whooping crane
+Whoopingcrane
 Wildcat
 Wildebeest
 Wildfowl
@@ -402,13 +402,13 @@ Wombat
 Woodpecker
 Wren
 Xerinae
-X-ray fish
+X-rayfish
 Yak
-Yellow perch
+Yellowperch
 Zebra
-Zebra finch
+Zebrafinch
 Alpaca
-Bali cattle
+Balicattle
 Cat
 Cattle
 Chicken
@@ -417,15 +417,15 @@ Donkey
 Ferret
 Gayal
 Goldfish
-Guinea pig
+Guineapig
 Guppy
 Horse
 Koi
 Llama
-Ringneck dove
+Ringneckdove
 Sheep
 Yak
-Water buffalo
+Waterbuffalo
 abiyuch
 acerola
 acorn

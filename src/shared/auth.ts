@@ -38,7 +38,7 @@ export function fingerprint(payload: DeviceHashPayload|ServerHashPayload): strin
     return hasher.digest().toString('base64');
 }
 
-export async function generateNonce(length: number = 16): Promise<Buffer> {
+export async function generateNonce(length = 16): Promise<Buffer> {
     return new Promise<Buffer>((res, rej) => {
         randomBytes(length, (err, buf) => {
             if (err) {

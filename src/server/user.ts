@@ -4,6 +4,22 @@ import {
   HashAlgorithm,
   NewUserPayload
 } from '../shared/types/authentication';
+import { promises as fs } from 'fs';
+import { randomInt } from 'crypto';
+import { join } from 'path';
+
+const NUM_LEN = 5;
+const HANDLE_TTL = 5 * 60 * 1000;
+
+const adjectives = fs
+  .readFile(join(__dirname, 'adjectives.txt'))
+  .then((buf) => buf.toString('utf-8'))
+  .then((str) => str.split(/\r\n|\n\r|\n|\r/g));
+
+const nouns = fs
+  .readFile(join(__dirname, 'nouns.txt'))
+  .then((buf) => buf.toString('utf-8'))
+  .then((str) => str.split(/\r\n|\n\r|\n|\r/g));
 
 export interface Device {
   id: string;
@@ -25,6 +41,36 @@ export interface User {
   devices: {
     [deviceID: string]: Device;
   };
+}
+
+function properNoun(str: string): string {
+  return str.charAt(0).toLocaleUpperCase() + str.slice(1).toLocaleLowerCase();
+}
+
+export async function generateHandle(): Promise<string> {
+  const adj = await adjectives;
+  const noun = await nouns;
+
+  const accountNum = randomInt(0, 10 ** NUM_LEN);
+  const first = properNoun(adj[randomInt(0, adj.length)]);
+  const second = properNoun(noun[randomInt(0, noun.length)]);
+
+  const handle = `${first}${second}#${accountNum}`;
+
+  // store it in db...
+
+  // Check it doesn't already exist... if it does, do this again?
+  /*
+  if (false) {
+    return generateHandle();
+  }
+  */
+  // in 5 minutes, kill it!
+  setTimeout(() => {
+    // remove it...
+    console.log(`@${handle} was removed`);
+  }, HANDLE_TTL);
+  return handle;
 }
 
 export async function createUser(user: NewUserPayload): Promise<void> {

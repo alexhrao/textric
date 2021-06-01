@@ -5,7 +5,7 @@ import { Arguments } from 'yargs';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { addDevice, completeDevice, createUser, Device, getUser } from './user';
+import { addDevice, completeDevice, createUser, Device, generateHandle, getUser } from './user';
 import {
   DEInitResponse,
   HashAlgorithm,
@@ -157,6 +157,16 @@ wss.on('connection', (ws) => {
 // express!
 const httpServer = express();
 httpServer.use(express.json());
+
+httpServer.get('/users', async (req, res) => {
+  if (req.query['username'] !== undefined) {
+    generateHandle().then((handle) => {
+      res.contentType('text/plain').send(handle).end();
+    });
+  } else {
+    res.sendStatus(404);
+  }
+});
 
 httpServer.post('/users', async (req, res) => {
   if (!isNewUser(req.body)) {
