@@ -29,7 +29,7 @@ export interface Address {
 }
 
 
-interface DatabasePayload {
+export interface DatabasePayload {
     // Eventually mirrors JSON payload we'll send to other device
 }
 
@@ -106,7 +106,18 @@ export function isServerMessage(msg: unknown): msg is ServerMessage {
     } else if (
         'src' in msg &&
         'dst' in msg &&
-        (('timeserver' in msg && typeof (<ServerMessage>msg).timeServer === 'number') || !('timeserver' in msg)) &&
+        'timeServer' in msg &&
+        'payload' in msg &&
+        isAddress((<ServerMessage>msg).src) &&
+        ((typeof (<ServerMessage>msg).dst === 'string') || isAddress((<ServerMessage>msg).dst)) &&
+        typeof (<ServerMessage>msg).timeServer === 'number' &&
+        typeof (<ServerMessage>msg).payload === 'string'
+    ) {
+        return true;
+    } else if (
+        'src' in msg &&
+        'dst' in msg &&
+        !('timeServer' in msg) &&
         'payload' in msg &&
         isAddress((<ServerMessage>msg).src) &&
         (typeof (<ServerMessage>msg).dst === 'string' ||isAddress((<ServerMessage>msg).dst)) &&
@@ -138,9 +149,12 @@ export function isClientMessage(msg: unknown): msg is ClientMessage {
 }
 
 export function isMessage(msg: unknown): msg is Message {
-    return isErrorMessage(msg) || isNormalMessage(msg) || isReplyMessage(msg) ||
-        isReacMessage(msg) || isAckMessage(msg) || isAuthMessage(msg) ||
-        isAliveMessage(msg) || isDataMessage(msg);
+    if (typeof msg !== 'object' || msg === null || msg === undefined)
+        return false;
+    else
+        return isErrorMessage(msg) || isNormalMessage(msg) || isReplyMessage(msg) ||
+            isReacMessage(msg) || isAckMessage(msg) || isAuthMessage(msg) ||
+            isAliveMessage(msg) || isDataMessage(msg);
 }
 
 export function isCommMessage(msg: unknown): msg is NormalMessage|ReplyMessage|ReacMessage|AckMessage {
