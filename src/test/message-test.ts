@@ -1,8 +1,5 @@
 import * as Message from 'src/shared/types/Message';
 import { expect } from 'chai';
-import { Address } from 'cluster';
-
-
 
 describe('Address Tests', function() {
     describe("Must be a non-null and non-undefined object", function() {

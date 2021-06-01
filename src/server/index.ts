@@ -8,7 +8,7 @@ import { hideBin } from 'yargs/helpers';
 import { addDevice, completeDevice, createUser, Device, getUser } from './user';
 import { DEInitResponse, HashAlgorithm, isDEInit, NONCE_LEN, SALT_LEN, isDEComplete, DeviceType, isWSAuth, isNewUser } from '@shared/types/authentication';
 import { fingerprint, generateNonce } from '@shared/auth';
-import { AuthMessage, ErrorMessage, isCommMessage, Message, MessageType } from '@shared/types/Message';
+import { AuthMessage, ErrorMessage, isClientMessage, isCommMessage, MessageType } from '@shared/types/Message';
 
 interface ServerOptions extends Arguments {
     "server-port"?: number;
@@ -91,7 +91,6 @@ wss.on('connection', (ws) => {
                     dev = conns[msg.userID][msg.deviceID];
                     const success: AuthMessage = {
                         type: MessageType.AACK,
-                        timeServer: Date.now(),
                     };
                     ws.send(JSON.stringify(success));
                     authed = true;
@@ -100,9 +99,8 @@ wss.on('connection', (ws) => {
                 }
             } catch (e) {
                 const err: ErrorMessage = {
-                    dst: dev.userID,
-                    timeServer: Date.now(),
                     type: MessageType.ERR,
+                    errNo: NaN,
                 };
                 ws.send(JSON.stringify(err));
                 ws.close();
@@ -111,25 +109,25 @@ wss.on('connection', (ws) => {
         }
         try {
             const msg = JSON.parse(data.toString('utf8'));
-            if (!isCommMessage(msg)) {
+            if (!isClientMessage(msg)) {
                 throw new Error("Invalid Payload");
             }
             // read the destination, send accordingly
             // so... eventually, we'll need to manage queues for users with devices that aren't online...
             // but I don't wanna do that right now. So for now, we're just going to send to devices that are awake
-            if (!(msg.dst in conns)) {
+            const dst = (typeof msg.dst === 'string') ? msg.dst : msg.dst.userID;
+            if (!(dst in conns)) {
                 return;
             } else {
                 msg.timeServer = Date.now();
-                Object.values(conns[msg.dst]).forEach(ds => {
+                Object.values(conns[dst]).forEach(ds => {
                     ds.socket.send(JSON.stringify(msg));
                 });
             }
         } catch (e) {
             const err: ErrorMessage = {
-                dst: dev.userID,
-                timeServer: Date.now(),
                 type: MessageType.ERR,
+                errNo: NaN,
             };
             ws.send(JSON.stringify(err));
             return;
