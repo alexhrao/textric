@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --build test",
+    "server": "npm start",
     "start": "node -r ts-node/register -r tsconfig-paths/register dist/server/index.js",
     "client": "node -r ts-node/register -r tsconfig-paths/register dist/client/index.js",
     "test": "mocha dist/test/**/*.js",
@@ -41,7 +42,6 @@
     "chai": "^4.3.4",
     "express": "^4.17.1",
     "mocha": "^8.4.0",
-    "tsconfig-paths": "^3.9.0",
     "ws": "^7.4.6",
     "yargs": "^17.0.1"
   },

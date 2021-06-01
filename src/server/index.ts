@@ -16,14 +16,14 @@ import {
   DeviceType,
   isWSAuth,
   isNewUser
-} from '@shared/types/authentication';
-import { fingerprint, generateNonce } from '@shared/auth';
+} from '../shared/types/authentication';
+import { fingerprint, generateNonce } from '../shared/auth';
 import {
   AuthMessage,
   ErrorMessage,
   isClientMessage,
   MessageType
-} from '@shared/types/Message';
+} from '../shared/types/Message';
 
 interface ServerOptions extends Arguments {
   'server-port'?: number;
