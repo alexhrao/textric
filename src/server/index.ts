@@ -29,6 +29,7 @@ import {
     AuthMessage,
     ErrorMessage,
     isClientMessage,
+    isServerMessage,
     MessageType,
 } from '../shared/types/Message';
 
@@ -137,7 +138,7 @@ wss.on('connection', (ws) => {
         }
         try {
             const msg = JSON.parse(data.toString('utf8'));
-            if (!isClientMessage(msg)) {
+            if (!isServerMessage(msg)) {
                 throw new Error('Invalid Payload');
             }
             // read the destination, send accordingly
