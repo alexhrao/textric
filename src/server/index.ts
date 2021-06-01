@@ -5,7 +5,14 @@ import { Arguments } from 'yargs';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { addDevice, completeDevice, createUser, Device, generateHandle, getUser } from './user';
+import {
+  addDevice,
+  completeDevice,
+  createUser,
+  Device,
+  generateHandle,
+  getUser
+} from './user';
 import {
   DEInitResponse,
   HashAlgorithm,

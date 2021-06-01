@@ -9,7 +9,8 @@
     "start": "node dist/server/index.js",
     "client": "node dist/client/index.js",
     "test": "mocha dist/test/**/*.js",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix"
   },
   "repository": {
     "type": "git",
