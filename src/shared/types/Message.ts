@@ -297,7 +297,9 @@ export function isAddress(addr: unknown): addr is Address {
         return false;
     } else if (
         'userID' in addr &&
-        'deviceID' in addr
+        'deviceID' in addr &&
+        typeof (<Address>addr).deviceID === 'string' &&
+        typeof (<Address>addr).userID === 'string'
     ) {
         return true;
     } else {
