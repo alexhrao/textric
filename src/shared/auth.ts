@@ -49,7 +49,11 @@ export function fingerprint(
     hasher.update(payload.nonce);
     return hasher.digest().toString('base64');
 }
-
+export function fakeSalt(handle: string): string {
+    const hasher = createHash('sha256');
+    hasher.update(handle);
+    return hasher.digest().slice(0, SALT_LEN).toString('base64');
+}
 export async function generateNonce(length = 16): Promise<Buffer> {
     return new Promise<Buffer>((res, rej) => {
         randomBytes(length, (err, buf) => {

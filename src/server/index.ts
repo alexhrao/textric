@@ -24,7 +24,7 @@ import {
     isWSAuth,
     isNewUser,
 } from '../shared/types/authentication';
-import { fingerprint, generateNonce } from '../shared/auth';
+import { fakeSalt, fingerprint, generateNonce } from '../shared/auth';
 import {
     AuthMessage,
     ErrorMessage,
@@ -212,7 +212,7 @@ httpServer.post('/enroll', async (req, res) => {
             addDevice(payload.userID, payload.deviceID, print);
         } catch (e) {
             // couldn't find! fill in w/ random salt
-            resp.salt = (await generateNonce(SALT_LEN)).toString('base64');
+            resp.salt = fakeSalt(payload.userID);
         }
         res.json(resp);
     } else if (isDEComplete(req.body)) {
