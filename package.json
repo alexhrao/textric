@@ -4,9 +4,11 @@
   "description": "A Next-Generation Messaging Service",
   "main": "index.js",
   "scripts": {
+    "build": "tsc --build test",
     "start": "node -r ts-node/register -r tsconfig-paths/register dist/server/index.js",
     "client": "node -r ts-node/register -r tsconfig-paths/register dist/client/index.js",
-    "test": "mocha src/test/*.ts -r ts-node/register -r tsconfig-paths/register --watch-extensions ts"
+    "test": "mocha dist/test/**/*.js",
+    "lint": "eslint . --ext .ts"
   },
   "repository": {
     "type": "git",
