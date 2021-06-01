@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node -r ts-node/register -r tsconfig-paths/register dist/server/index.js",
     "client": "node -r ts-node/register -r tsconfig-paths/register dist/client/index.js",
-    "test": "mocha -r ts-node/register -r tsconfig-paths/register src/test/*.ts"
+    "test": "mocha src/test/*.ts -r ts-node/register -r tsconfig-paths/register --watch-extensions ts"
   },
   "repository": {
     "type": "git",
