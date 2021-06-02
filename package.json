@@ -4,7 +4,13 @@
   "description": "A Next-Generation Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rimraf dist && tsc --build test && rsync -a resources/ dist/",
+    "server": "npm start",
+    "start": "node dist/server/index.js",
+    "client": "node dist/client/index.js",
+    "test": "mocha dist/test/**/*.js",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix"
   },
   "repository": {
     "type": "git",
@@ -17,13 +23,29 @@
   },
   "homepage": "https://github.com/alexhrao/textric#readme",
   "devDependencies": {
+    "@tsconfig/node16": "^1.0.1",
+    "@types/chai": "^4.2.18",
+    "@types/express": "^4.17.12",
+    "@types/mocha": "^8.2.2",
     "@types/node": "^15.6.1",
     "@types/ws": "^7.4.4",
+    "@types/yargs": "^17.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
+    "eslint": "^7.27.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.0",
+    "rimraf": "^3.0.2",
     "ts-node": "^10.0.0",
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "ws": "^7.4.6"
+    "chai": "^4.3.4",
+    "express": "^4.17.1",
+    "mocha": "^8.4.0",
+    "ws": "^7.4.6",
+    "yargs": "^17.0.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.3",
