@@ -28,14 +28,14 @@ export enum DeviceType {
 
 // Interfaces for device enrollment
 export interface DEInit {
-    userID: string;
+    handle: string;
     deviceID: string;
 }
 export function isDEInit(init: unknown): init is DEInit {
     if (typeof init !== 'object' || init === null || init === undefined) {
         return false;
     } else if (
-        'userID' in init &&
+        'handle' in init &&
         'deviceID' in init &&
         Object.keys(init).length === 2
     ) {
@@ -61,7 +61,7 @@ export function isDEInitResponse(init: unknown): init is DEInitResponse {
 }
 
 export interface DEComplete {
-    userID: string;
+    handle: string;
     deviceID: string;
     info?: {
         name?: string;
@@ -73,7 +73,7 @@ export interface DEComplete {
 export function isDEComplete(comp: unknown): comp is DEComplete {
     if (typeof comp !== 'object' || comp === null || comp === undefined) {
         return false;
-    } else if ('userID' in comp && 'deviceID' in comp && 'hash' in comp) {
+    } else if ('handle' in comp && 'deviceID' in comp && 'hash' in comp) {
         return true;
     } else {
         return false;
@@ -82,14 +82,14 @@ export function isDEComplete(comp: unknown): comp is DEComplete {
 
 export interface WSAuth {
     deviceID: string;
-    userID: string;
+    handle: string;
     fingerprint: string;
 }
 export function isWSAuth(auth: unknown): auth is WSAuth {
     if (typeof auth !== 'object' || auth === null || auth === undefined) {
         return false;
     } else if (
-        'userID' in auth &&
+        'handle' in auth &&
         'deviceID' in auth &&
         'fingerprint' in auth
     ) {

@@ -27,6 +27,7 @@
     "@types/chai": "^4.2.18",
     "@types/express": "^4.17.12",
     "@types/mocha": "^8.2.2",
+    "@types/mongodb": "^3.6.17",
     "@types/node": "^15.6.1",
     "@types/ws": "^7.4.4",
     "@types/yargs": "^17.0.0",
@@ -44,6 +45,7 @@
     "chai": "^4.3.4",
     "express": "^4.17.1",
     "mocha": "^8.4.0",
+    "mongodb": "^3.6.9",
     "ws": "^7.4.6",
     "yargs": "^17.0.1"
   },

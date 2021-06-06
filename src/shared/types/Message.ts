@@ -22,7 +22,7 @@ export enum MessageType {
 }
 
 export interface Address {
-    userID: string;
+    handle: string;
     deviceID: string;
 }
 // eslint-disable-next-line
@@ -320,10 +320,10 @@ export function isAddress(addr: unknown): addr is Address {
     if (typeof addr !== 'object' || addr === null || addr === undefined) {
         return false;
     } else if (
-        'userID' in addr &&
+        'handle' in addr &&
         'deviceID' in addr &&
         typeof (<Address>addr).deviceID === 'string' &&
-        typeof (<Address>addr).userID === 'string'
+        typeof (<Address>addr).handle === 'string'
     ) {
         return true;
     } else {
