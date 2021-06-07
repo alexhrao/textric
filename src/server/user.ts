@@ -50,6 +50,7 @@ export interface User {
 interface HandleCandidate {
     handle: string;
     timecreated: number;
+    reserved: boolean;
 }
 
 function properNoun(str: string): string {
@@ -84,18 +85,32 @@ export async function generateHandle(): Promise<string> {
     await col.insertOne({
         handle,
         timecreated: Date.now(),
+        reserved: false,
     });
     // store it in db...
     // in 5 minutes, kill it!
     setTimeout(async () => {
         // remove it...
-        await col.deleteOne({ handle });
+        await col.findOneAndDelete({ handle, reserved: false });
     }, HANDLE_TTL);
     return handle;
 }
 
+async function checkHandle(handle: string): Promise<boolean> {
+    const col = await getHandleCol();
+    const check = await col.findOneAndUpdate(
+        { handle },
+        { $set: { reserved: true } },
+    );
+    return !!check.ok;
+}
+
 export async function createUser(user: NewUserPayload): Promise<void> {
     // get a salt
+    // check that new user is viable
+    if (!(await checkHandle(user.handle))) {
+        throw new Error(`Handle ${user.handle} is not viable`);
+    }
     const hash = await hashPassword(user.password, HashAlgorithm.SHA256);
     const payload: User = {
         handle: user.handle,
@@ -120,7 +135,38 @@ export async function getUser(handle: string): Promise<User> {
     if (user === null) {
         throw new Error(`User with handle ${handle} not found`);
     } else {
-        return user;
+        return { ...user };
+    }
+}
+
+export async function deleteUser(handle: string, hash: string): Promise<void> {
+    const user = await getUser(handle);
+    if (user.passhash !== hash) {
+        throw new Error('Invalid hash sent!');
+    } else {
+        const col = await getUserCol();
+        await col.findOneAndDelete({ handle });
+    }
+}
+
+export async function changePassword(
+    handle: string,
+    oldPass: string,
+    newPass: string,
+): Promise<void> {
+    const user = await getUser(handle);
+    // check user password
+    if (
+        (await hashPassword(oldPass, user.hashalg, user.salt)).hash !==
+        user.passhash
+    ) {
+        throw new Error('Old password is incorrect');
+    } else {
+        const pass = await hashPassword(newPass, user.hashalg);
+        user.devices = {};
+        user.passhash = pass.hash;
+        user.salt = pass.salt;
+        await updateUser(user);
     }
 }
 

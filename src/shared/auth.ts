@@ -20,8 +20,20 @@ function translateHash(alg: HashAlgorithm): Hash {
 export async function hashPassword(
     pass: string,
     alg: HashAlgorithm,
+    salt: string,
+): Promise<PasswordHash>;
+export async function hashPassword(
+    pass: string,
+    alg: HashAlgorithm,
+): Promise<PasswordHash>;
+export async function hashPassword(
+    pass: string,
+    alg: HashAlgorithm,
+    salt?: string,
 ): Promise<PasswordHash> {
-    const salt = (await generateNonce(SALT_LEN)).toString('base64');
+    if (salt === undefined) {
+        salt = (await generateNonce(SALT_LEN)).toString('base64');
+    }
     const hasher = translateHash(alg);
     hasher.update(salt);
     hasher.update(pass);
