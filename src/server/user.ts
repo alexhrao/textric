@@ -1,7 +1,6 @@
 import { fingerprint, generateNonce, hashPassword } from '../shared/auth';
 import {
     DeviceType,
-    HashAlgorithm,
     NewUserPayload,
     NONCE_LEN,
 } from '../shared/types/authentication';
@@ -41,17 +40,15 @@ export interface User {
     handle: string;
     passhash: string;
     salt: string;
-    hashalg: HashAlgorithm;
     createdate: number; // Unix timestamp in UTC?
     devices: {
         [deviceID: string]: Device;
     };
 }
 
-interface HandleCandidate {
+export interface HandleCandidate {
     handle: string;
     timecreated: number;
-    reserved: boolean;
 }
 
 function properNoun(str: string): string {
@@ -86,24 +83,19 @@ export async function generateHandle(): Promise<string> {
     await col.insertOne({
         handle,
         timecreated: Date.now(),
-        reserved: false,
     });
-    // store it in db...
-    // in 5 minutes, kill it!
-    setTimeout(async () => {
-        // remove it...
-        await col.findOneAndDelete({ handle, reserved: false });
-    }, HANDLE_TTL);
     return handle;
 }
 
 async function checkHandle(handle: string): Promise<boolean> {
     const col = await getHandleCol();
-    const check = await col.findOneAndUpdate(
-        { handle },
-        { $set: { reserved: true } },
-    );
-    return !!check.ok;
+    await col.deleteMany({
+        timecreated: {
+            $lte: Date.now() - HANDLE_TTL,
+        },
+    });
+    const check = await col.findOneAndDelete({ handle });
+    return !!check.ok && check.value !== null;
 }
 
 export async function createUser(user: NewUserPayload): Promise<void> {
@@ -112,12 +104,22 @@ export async function createUser(user: NewUserPayload): Promise<void> {
     if (!(await checkHandle(user.handle))) {
         throw new Error(`Handle ${user.handle} is not viable`);
     }
-    const hash = await hashPassword(user.password, HashAlgorithm.SHA256);
+    let passed = false;
+    try {
+        await getUser(user.handle);
+        // if we made it here... it already exists! bail
+        passed = false;
+    } catch (e) {
+        passed = true;
+    }
+    if (!passed) {
+        throw new Error(`Handle ${user.handle} is not viable`);
+    }
+    const hash = await hashPassword(user.password);
     const payload: User = {
         handle: user.handle,
         createdate: Date.now(),
         devices: {},
-        hashalg: hash.alg,
         passhash: hash.hash,
         salt: hash.salt,
     };
@@ -157,13 +159,10 @@ export async function changePassword(
 ): Promise<void> {
     const user = await getUser(handle);
     // check user password
-    if (
-        (await hashPassword(oldPass, user.hashalg, user.salt)).hash !==
-        user.passhash
-    ) {
+    if ((await hashPassword(oldPass, user.salt)).hash !== user.passhash) {
         throw new Error('Old password is incorrect');
     } else {
-        const pass = await hashPassword(newPass, user.hashalg);
+        const pass = await hashPassword(newPass);
         user.devices = {};
         user.passhash = pass.hash;
         user.salt = pass.salt;
@@ -176,17 +175,15 @@ export async function revokeDevice(
     deviceID: string,
     print: string,
 ): Promise<void> {
-    try {
-        const user = await getUser(handle);
-        if (
-            deviceID in user.devices &&
-            user.devices[deviceID].fingerprint === print
-        ) {
-            delete user.devices[deviceID];
-            await updateUser(user);
-        }
-    } catch (e) {
-        // swallow errors!
+    const user = await getUser(handle);
+    if (
+        deviceID in user.devices &&
+        user.devices[deviceID].fingerprint === print
+    ) {
+        delete user.devices[deviceID];
+        await updateUser(user);
+    } else {
+        throw new Error('Bad Authentication');
     }
 }
 
@@ -210,7 +207,6 @@ export async function addDevice(
             type: DeviceType.Unknown,
         },
     };
-    console.log(user.devices[deviceID]);
     await updateUser(user);
 }
 
@@ -237,7 +233,6 @@ export async function completeDevice(
                 const nonce = await generateNonce(NONCE_LEN);
                 user.devices[device.id].fingerprint = fingerprint({
                     deviceID: device.id,
-                    hashAlg: user.hashalg,
                     nonce: nonce.toString('base64'),
                     passHash: user.passhash,
                 });

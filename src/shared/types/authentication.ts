@@ -1,6 +1,8 @@
 export const SALT_LEN = 32;
 export const NONCE_LEN = 16;
-
+export const KEY_LEN = 32;
+export const ENC_ALG = 'aes-256-ctr';
+export const HASH_ALG = 'sha256';
 export interface NewUserPayload {
     handle: string;
     password: string;
@@ -21,10 +23,6 @@ export function isNewUser(user: unknown): user is NewUserPayload {
     } else {
         return true;
     }
-}
-
-export enum HashAlgorithm {
-    SHA256 = 1,
 }
 
 export enum DeviceType {
@@ -65,7 +63,6 @@ export function isDEInit(init: unknown): init is DEInit {
 
 export interface DEInitResponse {
     salt: string;
-    hashAlgorithm: HashAlgorithm;
     nonce: string;
 }
 export function isDEInitResponse(init: unknown): init is DEInitResponse {
@@ -78,14 +75,7 @@ export function isDEInitResponse(init: unknown): init is DEInitResponse {
         return false;
     } else if (
         typeof payload.salt !== 'string' ||
-        typeof payload.hashAlgorithm !== 'number' ||
         typeof payload.nonce !== 'string'
-    ) {
-        return false;
-    } else if (
-        !Object.values(HashAlgorithm).find(
-            (alg) => alg === payload.hashAlgorithm,
-        )
     ) {
         return false;
     } else {
@@ -121,6 +111,96 @@ export function isDEComplete(comp: unknown): comp is DEComplete {
     // No need to check the info payload... if it's there, it's there, otherwise not.
 }
 
+export interface EncryptedPayload {
+    // Base-64 encoded IV
+    iv: string;
+    // Base-64 encoded, encrypted with ENC_ALG
+    payload: string;
+}
+export function isEncryptedPayload(p: unknown): p is EncryptedPayload {
+    if (typeof p !== 'object' || p === null) {
+        return false;
+    } else if (!('iv' in p && 'payload' in p)) {
+        return false;
+    }
+    const payload = <EncryptedPayload>p;
+    if (typeof payload.iv !== 'string' || typeof payload.payload !== 'string') {
+        return false;
+    }
+    return true;
+}
+
+export interface WSOpener {
+    handle: string;
+    deviceID: string;
+    // encrypt
+    devNonce: EncryptedPayload;
+}
+export function isWSOpener(ws: unknown): ws is WSOpener {
+    const payload = <WSOpener>ws;
+    if (typeof ws !== 'object' || ws === null || ws === undefined) {
+        return false;
+    } else if (!('handle' in ws && 'deviceID' in ws && 'devNonce' in ws)) {
+        return false;
+    } else if (
+        typeof payload.deviceID !== 'string' ||
+        typeof payload.handle !== 'string' ||
+        !isEncryptedPayload(payload.devNonce)
+    ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+export interface WSOpenResponse {
+    devInc: EncryptedPayload;
+    srvNonce: EncryptedPayload;
+}
+export function isWSOpenResponse(ws: unknown): ws is WSOpenResponse {
+    const payload = <WSOpenResponse>ws;
+    if (typeof ws !== 'object' || ws === null || ws === undefined) {
+        return false;
+    } else if (!('devInc' in ws && 'srvNonce' in ws)) {
+        return false;
+    } else if (
+        !isEncryptedPayload(payload.devInc) ||
+        !isEncryptedPayload(payload.srvNonce)
+    ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+// eslint-disable-next-line
+interface SocketConfig {}
+function isSocketConfig(config: unknown): config is SocketConfig {
+    if (typeof config !== 'object' || config === null || config === undefined) {
+        return false;
+    } else {
+        return true;
+    }
+}
+export interface WSComplete {
+    srvInc: EncryptedPayload;
+    config: SocketConfig;
+}
+export function isWSComplete(ws: unknown): ws is WSComplete {
+    const payload = <WSComplete>ws;
+    if (typeof ws !== 'object' || ws === null || ws === undefined) {
+        return false;
+    } else if (!('srvInc' in ws && 'srvNonce' in ws)) {
+        return false;
+    } else if (
+        !isEncryptedPayload(payload.srvInc) ||
+        !isSocketConfig(payload.config)
+    ) {
+        return false;
+    } else {
+        return true;
+    }
+}
 export interface WSAuth {
     deviceID: string;
     handle: string;
@@ -148,14 +228,12 @@ export function isWSAuth(auth: unknown): auth is WSAuth {
 export interface DeviceHashPayload {
     deviceID: string;
     nonce: string;
-    hashAlg: HashAlgorithm;
     pass: string;
     salt: string;
 }
 export interface ServerHashPayload {
     deviceID: string;
     nonce: string;
-    hashAlg: HashAlgorithm;
     passHash: string;
 }
 export function isServerHash(
@@ -217,5 +295,4 @@ export function isDeletePayload(del: unknown): del is DeletePayload {
 export interface PasswordHash {
     hash: string;
     salt: string;
-    alg: HashAlgorithm;
 }

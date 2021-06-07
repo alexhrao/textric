@@ -8,6 +8,7 @@ import {
 import { Collection, ObjectId } from 'mongodb';
 import WebSocket from 'ws';
 import { getUser } from './user';
+import { socketEncrypt } from '../shared/auth';
 
 const QUEUE_DB = 'messagequeues';
 const POLL_INT = 5000;
@@ -108,7 +109,11 @@ export function register(ds: DeviceSocket): void {
             );
             if (ind !== -1) {
                 // pump it down... if there's an error, do NOT mutate!
-                socket.send(JSON.stringify(qm.msg), async (err) => {
+                const payload = await socketEncrypt(
+                    ds.fingerprint,
+                    JSON.stringify(qm.msg),
+                );
+                socket.send(JSON.stringify(payload), async (err) => {
                     if (err !== undefined) {
                         // close the socket...
                         delete conns[handle][deviceID];

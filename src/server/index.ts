@@ -16,17 +16,26 @@ import {
 } from './user';
 import {
     DEInitResponse,
-    HashAlgorithm,
     isDEInit,
     NONCE_LEN,
     isDEComplete,
     DeviceType,
-    isWSAuth,
     isNewUser,
     isNewPassword,
     isDeletePayload,
+    isWSOpener,
+    WSOpenResponse,
+    isWSComplete,
+    isEncryptedPayload,
 } from '../shared/types/authentication';
-import { fakeSalt, fingerprint, generateNonce } from '../shared/auth';
+import {
+    fakeSalt,
+    fingerprint,
+    generateNonce,
+    socketDecrypt,
+    socketEncrypt,
+    wsNonce,
+} from '../shared/auth';
 import {
     ErrorMessage,
     isServerMessage,
@@ -35,6 +44,11 @@ import {
 import { setClient } from './mongoConnector';
 import { queue, register } from './queueService';
 
+const enum WSAuthStep {
+    Unauthed,
+    Opened,
+    Complete,
+}
 export interface ServerOptions {
     'server-port'?: number;
     'socket-port'?: number;
@@ -104,7 +118,6 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
             const payload = req.body;
             const resp: DEInitResponse = {
                 nonce: (await generateNonce(NONCE_LEN)).toString('base64'),
-                hashAlgorithm: HashAlgorithm.SHA256,
                 salt: '',
             };
             try {
@@ -113,7 +126,6 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
                 resp.salt = user.salt;
                 const print = fingerprint({
                     deviceID: payload.deviceID,
-                    hashAlg: user.hashalg,
                     nonce: resp.nonce,
                     passHash: user.passhash,
                 });
@@ -153,7 +165,7 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
         }
     });
 
-    return new Promise<void>((res, rej) => {
+    return new Promise<void>((res) => {
         httpServer.listen(httpPort, () => {
             console.log(`HTTPServer listening on port ${httpPort}`);
             res();
@@ -170,58 +182,103 @@ export async function setupSocketServer(argv: ServerOptions): Promise<void> {
     });
 
     wss.on('connection', (ws) => {
-        let authed = false;
+        let authed = WSAuthStep.Unauthed;
+        const nonce = BigInt(wsNonce().toString());
+        let dev: Device;
+        let handle: string;
         ws.on('message', async (data) => {
             // client does first volley...
-            if (!authed) {
+            if (authed === WSAuthStep.Unauthed) {
                 try {
                     const msg = JSON.parse(data.toString('utf-8'));
-                    if (!isWSAuth(msg)) {
+                    if (!isWSOpener(msg)) {
                         throw new Error('Invalid Payload');
                     }
                     // check it
                     const user = await getUser(msg.handle);
-                    if (
-                        user.devices[msg.deviceID]?.fingerprint === msg.fingerprint
-                    ) {
-                        register({
-                            deviceID: msg.deviceID,
-                            fingerprint: msg.fingerprint,
-                            handle: msg.handle,
-                            socket: ws,
-                        });
-                        authed = true;
-                    } else {
-                        throw new Error('Invalid Fingerprint');
+                    handle = msg.handle;
+                    // decrypt payload with fingerprint as key
+                    if (user.devices[msg.deviceID] === undefined) {
+                        throw new Error('Invalid Device');
                     }
+                    dev = user.devices[msg.deviceID];
+                    // otherwise, decrypt with our fingerprint. it'll contain a nonce as a string; use BigInt to find
+                    const devNonce = BigInt(
+                        socketDecrypt(dev.fingerprint, msg.devNonce),
+                    );
+                    const devInc = await socketEncrypt(
+                        dev.fingerprint,
+                        (devNonce + 1n).toString(),
+                    );
+                    const srvNonce = await socketEncrypt(
+                        dev.fingerprint,
+                        nonce.toString(),
+                    );
+                    const resp: WSOpenResponse = { devInc, srvNonce };
+                    ws.send(JSON.stringify(resp));
+                    authed = WSAuthStep.Opened;
+                } catch (e) {
+                    const err: ErrorMessage = {
+                        type: MessageType.ERR,
+                        errNo: 1,
+                    };
+                    ws.send(JSON.stringify(err));
+                    ws.close();
+                }
+            } else if (authed === WSAuthStep.Opened) {
+                try {
+                    const msg = JSON.parse(data.toString('utf8'));
+                    if (!isWSComplete(msg)) {
+                        throw new Error('Invalid Payload');
+                    }
+                    // check that nonce is correct...
+                    const srvCand = BigInt(
+                        socketDecrypt(dev.fingerprint, msg.srvInc),
+                    );
+                    if (srvCand !== nonce + 1n) {
+                        throw new Error('Nonce does not match');
+                    }
+                    register({
+                        deviceID: dev.id,
+                        fingerprint: dev.fingerprint,
+                        handle,
+                        socket: ws,
+                    });
+                    authed = WSAuthStep.Complete;
+                } catch (e) {
+                    const err: ErrorMessage = {
+                        type: MessageType.ERR,
+                        errNo: 1,
+                    };
+                    ws.send(JSON.stringify(err));
+                    ws.close();
+                }
+            } else {
+                try {
+                    const payload = JSON.parse(data.toString('utf8'));
+                    if (!isEncryptedPayload(payload)) {
+                        throw new Error('Invalid payload');
+                    }
+                    const msg = JSON.parse(
+                        socketDecrypt(dev.fingerprint, payload),
+                    );
+                    if (!isServerMessage(msg)) {
+                        throw new Error('Invalid Payload');
+                    }
+                    msg.timeServer = Date.now();
+                    queue(msg);
                 } catch (e) {
                     const err: ErrorMessage = {
                         type: MessageType.ERR,
                         errNo: NaN,
                     };
                     ws.send(JSON.stringify(err));
-                    ws.close();
+                    return;
                 }
-                return;
-            }
-            try {
-                const msg = JSON.parse(data.toString('utf8'));
-                if (!isServerMessage(msg)) {
-                    throw new Error('Invalid Payload');
-                }
-                msg.timeServer = Date.now();
-                queue(msg);
-            } catch (e) {
-                const err: ErrorMessage = {
-                    type: MessageType.ERR,
-                    errNo: NaN,
-                };
-                ws.send(JSON.stringify(err));
-                return;
             }
         });
     });
-    return new Promise<void>((res, rej) => {
+    return new Promise<void>((res) => {
         wss.on('listening', () => {
             console.log(`SocketServer listening on port ${wsPort}`);
             res();
