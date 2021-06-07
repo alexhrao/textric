@@ -51,17 +51,13 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
     httpServer.use(express.json());
 
     /// User Account API
-    httpServer.get('/users', async (req, res) => {
-        if (req.query['username'] !== undefined) {
-            generateHandle().then((handle) => {
-                res.contentType('text/plain').send(handle).end();
-            });
-        } else {
-            res.sendStatus(404);
-        }
+    httpServer.get('/api/users', async (req, res) => {
+        generateHandle().then((handle) => {
+            res.contentType('text/plain').send(handle).end();
+        });
     });
 
-    httpServer.post('/users', async (req, res) => {
+    httpServer.post('/api/users', async (req, res) => {
         if (!isNewUser(req.body)) {
             res.sendStatus(400);
             return;
@@ -74,7 +70,7 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
         }
     });
 
-    httpServer.patch('/users', async (req, res) => {
+    httpServer.patch('/api/users', async (req, res) => {
         if (!isNewPassword(req.body)) {
             res.sendStatus(400);
             return;
@@ -88,7 +84,7 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
         }
     });
 
-    httpServer.put('/users', async (req, res) => {
+    httpServer.put('/api/users', async (req, res) => {
         if (!isDeletePayload(req.body)) {
             res.sendStatus(400);
             return;
@@ -102,7 +98,7 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
     });
 
     /// Device API
-    httpServer.post('/devices', async (req, res) => {
+    httpServer.post('/api/devices', async (req, res) => {
         // verify req.body
         if (isDEInit(req.body)) {
             const payload = req.body;
@@ -133,7 +129,7 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
         }
     });
 
-    httpServer.put('/devices', async (req, res) => {
+    httpServer.put('/api/devices', async (req, res) => {
         if (isDEComplete(req.body)) {
             const payload = req.body;
             try {
