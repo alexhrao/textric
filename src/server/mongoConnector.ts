@@ -6,6 +6,10 @@ export const DB = 'default';
 export function setClient(user: string, pass: string, url: string): void;
 export function setClient(): void;
 export function setClient(user?: string, pass?: string, url?: string): void {
+    if (client !== undefined) {
+        // No need to wait!
+        client.close();
+    }
     if (user === undefined || pass === undefined || url === undefined) {
         if (
             !process.env['MONGO_USER'] ||
