@@ -13,7 +13,7 @@ import { socketEncrypt } from '../shared/auth';
 const QUEUE_DB = 'messagequeues';
 const POLL_INT = 5000;
 
-interface QueuedMessage {
+export interface QueuedMessage {
     _id: ObjectId;
     addrs: Address[];
     msg: ServerMessage;
@@ -45,39 +45,59 @@ export async function queue(msg: ServerMessage): Promise<void>;
 export async function queue(
     msg: ServerMessage | ServerMessage[],
 ): Promise<void> {
+    let src: Address;
     let testDst: Address | string;
     if (Array.isArray(msg)) {
         if (msg.length === 0) {
             return;
         }
         testDst = msg[0].dst;
+        src = msg[0].src;
     } else {
         testDst = msg.dst;
+        src = msg.src;
+    }
+    // check that the source exists...?
+    try {
+        const srcUser = await getUser(src.handle);
+        if (!(src.deviceID in srcUser.devices)) {
+            throw new Error('Source does not exist');
+        }
+    } catch (e) {
+        throw new Error('Queue Error');
     }
     const dst = typeof testDst === 'string' ? testDst : testDst.handle;
     const queue = await getMessageCol(dst);
     const addrs: Address[] = [];
-    if (typeof testDst === 'string') {
+    try {
         const user = await getUser(dst);
-        addrs.push(
-            ...Object.keys(user.devices).map((d) => {
-                return {
-                    handle: dst,
-                    deviceID: d,
-                };
-            }),
-        );
-    } else {
-        addrs.push(testDst);
+        if (typeof testDst === 'string') {
+            addrs.push(
+                ...Object.keys(user.devices).map((d) => {
+                    return {
+                        handle: dst,
+                        deviceID: d,
+                    };
+                }),
+            );
+        } else {
+            if (testDst.deviceID in user.devices) {
+                addrs.push(testDst);
+            } else {
+                throw new Error('Destination Device does not exist');
+            }
+        }
+    } catch (e) {
+        throw new Error('Queue Error');
     }
     if (Array.isArray(msg)) {
-        queue.insertMany(
+        await queue.insertMany(
             msg.map((msg) => {
                 return { msg, addrs };
             }),
         );
     } else {
-        queue.insertOne({ msg, addrs });
+        await queue.insertOne({ msg, addrs });
     }
 }
 

@@ -1,6 +1,6 @@
 import chai, { expect } from 'chai';
 import asPromised from 'chai-as-promised';
-import { DB, getClient, setClient } from '../server/mongoConnector';
+import { DB, getClient } from '../server/mongoConnector';
 import {
     addDevice,
     changePassword,
@@ -14,10 +14,11 @@ import {
     revokeDevice,
     User,
 } from '../server/user';
-// monkeypatch
-import rewire from 'rewire';
 import { fingerprint, generateNonce } from '../shared/auth';
 import { DeviceType, NONCE_LEN } from '../shared/types/authentication';
+import { closeMongo, setupMongo } from './mongoUtils';
+// monkeypatch
+import rewire from 'rewire';
 const userModule = rewire('../server/user');
 
 const userConsts = {
@@ -29,21 +30,15 @@ const userConsts = {
 
 chai.use(asPromised);
 
-setClient('', '', '127.0.0.1');
-
-async function resetMongo() {
-    const client = await getClient();
-    await client.db(DB).dropDatabase();
-    await client.db('messagequeues').dropDatabase();
-}
+setupMongo();
 
 describe('User Unit Tests', () => {
     beforeEach(async () => {
-        await resetMongo();
+        // Uncomment to scrub mongoDB clean
+        //await resetMongo();
     });
     after(async () => {
-        await (await getClient()).close();
-        setClient('', '', '127.0.0.1');
+        await closeMongo();
     });
     it('Should generate valid handles', async () => {
         for (let i = 0; i < 10; ++i) {
@@ -189,11 +184,11 @@ describe('User Unit Tests', () => {
 
 describe('User Device Unit Tests', async () => {
     beforeEach(async () => {
-        await resetMongo();
+        // Uncomment to scrub mongoDB clean
+        //await resetMongo();
     });
     after(async () => {
-        await (await getClient()).close();
-        setClient('', '', '127.0.0.1');
+        await closeMongo();
     });
 
     it('Should not add device to non-existent user', async () => {

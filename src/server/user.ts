@@ -15,6 +15,19 @@ const HANDLE_TTL = 5 * 60 * 1000;
 const USER_COL = 'users';
 const HANDLE_COL = 'handles';
 
+export function defaultDevice(id: string, print: string): Device {
+    return {
+        fingerprint: print,
+        id,
+        info: {
+            name: 'DefaultDevice',
+            os: 'DefaultOS',
+            type: DeviceType.Unknown,
+        },
+        verified: false,
+    };
+}
+
 const adjectives = fs
     .readFile(join(__dirname, 'adjectives.txt'))
     .then((buf) => buf.toString('utf-8'))

@@ -10,7 +10,7 @@
         "client": "node dist/client/index.js",
         "test": "mocha dist/test/**/*.js",
         "lint": "eslint . --ext .ts",
-        "lint:fix": "eslint . --ext .ts --fix && prettier --write ."
+        "lint:fix": "eslint . --ext .ts --fix && prettier --loglevel silent --write ."
     },
     "repository": {
         "type": "git",
