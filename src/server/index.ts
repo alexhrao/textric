@@ -143,8 +143,8 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
                         type: payload.info?.type ?? DeviceType.Unknown,
                     },
                 };
-                await completeDevice(payload.handle, dev);
-                res.sendStatus(204);
+                const nonce = await completeDevice(payload.handle, dev);
+                res.status(200).contentType('text/plain').send(nonce);
             } catch (e) {
                 res.sendStatus(401);
             }

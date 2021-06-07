@@ -1,8 +1,9 @@
-import { hashPassword } from '../shared/auth';
+import { fingerprint, generateNonce, hashPassword } from '../shared/auth';
 import {
     DeviceType,
     HashAlgorithm,
     NewUserPayload,
+    NONCE_LEN,
 } from '../shared/types/authentication';
 import { promises as fs } from 'fs';
 import { randomInt } from 'crypto';
@@ -216,7 +217,7 @@ export async function addDevice(
 export async function completeDevice(
     handle: string,
     device: Device,
-): Promise<void> {
+): Promise<string> {
     // check if prints match
     try {
         const user = await getUser(handle);
@@ -226,8 +227,22 @@ export async function completeDevice(
                 throw new Error('Authentication Error');
             } else {
                 // ready!
-                user.devices[device.id] = device;
+                user.devices[device.id].id = device.id;
+                user.devices[device.id].verified = true;
+                user.devices[device.id].info = {
+                    name: device.info.name,
+                    os: device.info.os,
+                    type: device.info.type,
+                };
+                const nonce = await generateNonce(NONCE_LEN);
+                user.devices[device.id].fingerprint = fingerprint({
+                    deviceID: device.id,
+                    hashAlg: user.hashalg,
+                    nonce: nonce.toString('base64'),
+                    passHash: user.passhash,
+                });
                 await updateUser(user);
+                return nonce.toString('base64');
             }
         } else {
             throw new Error('Authentication Error');
