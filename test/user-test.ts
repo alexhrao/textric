@@ -6,6 +6,7 @@ import {
     changePassword,
     completeDevice,
     createUser,
+    defaultDevice,
     deleteUser,
     Device,
     generateHandle,
@@ -213,16 +214,7 @@ describe('User Device Unit Tests', async () => {
 
         await expect(addDevice(handle, deviceID, print)).to.be.fulfilled;
         const user = await getUser(handle);
-        const expectedDevice: Device = {
-            verified: false,
-            fingerprint: print,
-            id: deviceID,
-            info: {
-                name: 'Unverified',
-                os: 'Unverified',
-                type: DeviceType.Unknown,
-            },
-        };
+        const expectedDevice = defaultDevice(deviceID, print);
         const devs: { [key: string]: Device } = {};
         devs[deviceID] = expectedDevice;
         expect(user).to.have.deep.property('devices', devs);
@@ -243,16 +235,7 @@ describe('User Device Unit Tests', async () => {
         await addDevice(handle, deviceID, newPrint);
 
         const user = await getUser(handle);
-        const expectedDevice: Device = {
-            verified: false,
-            fingerprint: newPrint,
-            id: deviceID,
-            info: {
-                name: 'Unverified',
-                os: 'Unverified',
-                type: DeviceType.Unknown,
-            },
-        };
+        const expectedDevice = defaultDevice(deviceID, newPrint);
         const devs: { [key: string]: Device } = {};
         devs[deviceID] = expectedDevice;
         expect(user).to.have.deep.property('devices', devs);
@@ -286,16 +269,7 @@ describe('User Device Unit Tests', async () => {
         await expect(revokeDevice(handle, deviceID, print + '1')).to.be
             .rejected;
         const user = await getUser(handle);
-        const expectedDevice: Device = {
-            verified: false,
-            fingerprint: print,
-            id: deviceID,
-            info: {
-                name: 'Unverified',
-                os: 'Unverified',
-                type: DeviceType.Unknown,
-            },
-        };
+        const expectedDevice = defaultDevice(deviceID, print);
         const devs: { [key: string]: Device } = {};
         devs[deviceID] = expectedDevice;
         expect(user).to.have.deep.property('devices', devs);
@@ -312,16 +286,7 @@ describe('User Device Unit Tests', async () => {
 
         await addDevice(handle, deviceID, print);
         const user = await getUser(handle);
-        const expectedDevice: Device = {
-            verified: false,
-            fingerprint: print,
-            id: deviceID,
-            info: {
-                name: 'Unverified',
-                os: 'Unverified',
-                type: DeviceType.Unknown,
-            },
-        };
+        const expectedDevice = defaultDevice(deviceID, print);
         const badDevice = { ...expectedDevice };
         badDevice.fingerprint += '1';
         await expect(completeDevice(handle, badDevice)).to.be.rejected;
