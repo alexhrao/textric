@@ -28,7 +28,7 @@ async function createUserWithDevice() {
     const print = fingerprint({
         deviceID,
         nonce,
-        passHash: user.passhash,
+        passhash: user.passhash,
     });
     await addDevice(handle, deviceID, print);
     const device = defaultDevice(deviceID, print);
@@ -36,7 +36,7 @@ async function createUserWithDevice() {
     device.fingerprint = fingerprint({
         deviceID,
         nonce: newNonce,
-        passHash: user.passhash,
+        passhash: user.passhash,
     });
 
     return { user, device };

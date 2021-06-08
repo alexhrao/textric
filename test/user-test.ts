@@ -169,7 +169,7 @@ describe('User Unit Tests', () => {
             fingerprint({
                 deviceID: devID,
                 nonce: 'NONCE',
-                passHash: oldUser.passhash,
+                passhash: oldUser.passhash,
             }),
         );
         await expect(changePassword(handle, password, password + '2')).to.be
@@ -197,7 +197,7 @@ describe('User Device Unit Tests', async () => {
         const print = fingerprint({
             deviceID,
             nonce: 'NONCE',
-            passHash: '12345',
+            passhash: '12345',
         });
         await expect(addDevice(handle, deviceID, print)).to.be.rejected;
     });
@@ -209,7 +209,7 @@ describe('User Device Unit Tests', async () => {
         const nonce = (await generateNonce(NONCE_LEN)).toString('base64');
         await createUser({ handle, password });
         const passHash = (await getUser(handle)).passhash;
-        const print = fingerprint({ deviceID, nonce, passHash });
+        const print = fingerprint({ deviceID, nonce, passhash: passHash });
 
         await expect(addDevice(handle, deviceID, print)).to.be.fulfilled;
         const user = await getUser(handle);
@@ -235,11 +235,11 @@ describe('User Device Unit Tests', async () => {
         await createUser({ handle, password });
         let nonce = (await generateNonce(NONCE_LEN)).toString('base64');
         const passHash = (await getUser(handle)).passhash;
-        const print = fingerprint({ deviceID, nonce, passHash });
+        const print = fingerprint({ deviceID, nonce, passhash: passHash });
         await addDevice(handle, deviceID, print);
 
         nonce = (await generateNonce(NONCE_LEN)).toString('base64');
-        const newPrint = fingerprint({ deviceID, nonce, passHash });
+        const newPrint = fingerprint({ deviceID, nonce, passhash: passHash });
         await addDevice(handle, deviceID, newPrint);
 
         const user = await getUser(handle);
@@ -265,7 +265,7 @@ describe('User Device Unit Tests', async () => {
         const nonce = (await generateNonce(NONCE_LEN)).toString('base64');
         await createUser({ handle, password });
         const passHash = (await getUser(handle)).passhash;
-        const print = fingerprint({ deviceID, nonce, passHash });
+        const print = fingerprint({ deviceID, nonce, passhash: passHash });
 
         await addDevice(handle, deviceID, print);
         await expect(revokeDevice(handle, deviceID, print)).to.be.fulfilled;
@@ -280,7 +280,7 @@ describe('User Device Unit Tests', async () => {
         const nonce = (await generateNonce(NONCE_LEN)).toString('base64');
         await createUser({ handle, password });
         const passHash = (await getUser(handle)).passhash;
-        const print = fingerprint({ deviceID, nonce, passHash });
+        const print = fingerprint({ deviceID, nonce, passhash: passHash });
 
         await addDevice(handle, deviceID, print);
         await expect(revokeDevice(handle, deviceID, print + '1')).to.be
@@ -308,7 +308,7 @@ describe('User Device Unit Tests', async () => {
         const nonce = (await generateNonce(NONCE_LEN)).toString('base64');
         await createUser({ handle, password });
         const passHash = (await getUser(handle)).passhash;
-        const print = fingerprint({ deviceID, nonce, passHash });
+        const print = fingerprint({ deviceID, nonce, passhash: passHash });
 
         await addDevice(handle, deviceID, print);
         const user = await getUser(handle);
@@ -337,7 +337,7 @@ describe('User Device Unit Tests', async () => {
         const nonce = (await generateNonce(NONCE_LEN)).toString('base64');
         await createUser({ handle, password });
         const passHash = (await getUser(handle)).passhash;
-        const print = fingerprint({ deviceID, nonce, passHash });
+        const print = fingerprint({ deviceID, nonce, passhash: passHash });
 
         await addDevice(handle, deviceID, print);
         const expectedDevice: Device = {
@@ -351,7 +351,7 @@ describe('User Device Unit Tests', async () => {
             },
         };
         const newNonce = await completeDevice(handle, expectedDevice);
-        const newPrint = fingerprint({ deviceID, nonce: newNonce, passHash });
+        const newPrint = fingerprint({ deviceID, nonce: newNonce, passhash: passHash });
         expectedDevice.fingerprint = newPrint;
         const user = await getUser(handle);
         const devs: { [key: string]: Device } = {};

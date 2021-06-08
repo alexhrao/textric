@@ -1,9 +1,21 @@
 import { MongoClient } from 'mongodb';
 
 let client: MongoClient | undefined = undefined;
+/**
+ * The default database
+ */
 export const DB = 'default';
-
+/**
+ * Setup the client, closing the previous if necessary
+ * 
+ * @param user The MongoDB Username
+ * @param pass The MongoDB Password
+ * @param url The MongoDB URL
+ */
 export function setClient(user: string, pass: string, url: string): void;
+/**
+ * Setup the client, using environment variables
+ */
 export function setClient(): void;
 export function setClient(user?: string, pass?: string, url?: string): void {
     if (client !== undefined) {
@@ -37,7 +49,14 @@ export function setClient(user?: string, pass?: string, url?: string): void {
         });
     }
 }
-
+/**
+ * Get the MongoDB client
+ * 
+ * @returns A Promise that resolves to a valid MongoDB client
+ * @throws Will error if the client hasn't been previously set
+ * 
+ * @see setClient
+ */
 export async function getClient(): Promise<MongoClient> {
     if (client === undefined) {
         throw new Error(

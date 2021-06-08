@@ -7,9 +7,7 @@ import {
 } from 'crypto';
 import bigrandom from 'crypto-random-string';
 import {
-    DeviceHashPayload,
-    ServerHashPayload,
-    isServerHash,
+    HashPayload,
     PasswordHash,
     SALT_LEN,
     KEY_LEN,
@@ -20,10 +18,25 @@ import {
 
 const WS_NONCE_LEN = 32;
 
+/**
+ * Hash a password using Scrypt
+ * 
+ * @param pass The password to hash
+ * @param salt The salt to use. Note that this salt should be cryptographically random
+ * @returns A promise that resolves to the hashed password + salt
+ */
 export async function hashPassword(
     pass: string,
     salt: string,
 ): Promise<PasswordHash>;
+/** Hash a password using Scrypt
+ * 
+ * The salt is randomly generated using `generateNonce`.
+ * 
+ * @see generateNonce
+ * @param pass The password to hash
+ * @returns A promise that resolves to the hashed password + salt
+ */
 export async function hashPassword(pass: string): Promise<PasswordHash>;
 export async function hashPassword(
     pass: string,
@@ -44,31 +57,38 @@ export async function hashPassword(
     });
 }
 
-type HashPayload = DeviceHashPayload | ServerHashPayload;
-
-export function fingerprint(payload: DeviceHashPayload): string;
-export function fingerprint(payload: ServerHashPayload): string;
+/** Generate a fingerprint for the given device
+ * 
+ * @param payload The device information to fingerprint.
+ * @returns A string, which is the base64 encoded fingerprint
+ */
 export function fingerprint(payload: HashPayload): string {
     const hasher = createHash(HASH_ALG);
-    if (isServerHash(payload)) {
-        // have server
-        hasher.update(payload.passHash);
-    } else {
-        const passHasher = createHash(HASH_ALG);
-        const salt = payload.salt;
-        passHasher.update(salt);
-        passHasher.update(payload.pass);
-        hasher.update(passHasher.digest().toString('base64'));
-    }
+    hasher.update(payload.passhash);
     hasher.update(payload.deviceID);
     hasher.update(payload.nonce);
     return hasher.digest().toString('base64');
 }
+/** Generate a fake salt
+ * 
+ * This salt is **not meant** for real consumption; it is meant
+ * to be feigned as a real one, to hide the existence of a
+ * given user handle
+ * 
+ * @param handle The handle for which to generate the fake salt
+ * @returns A fake salt to use for user privacy
+ */
 export function fakeSalt(handle: string): string {
     const hasher = createHash(HASH_ALG);
     hasher.update(handle);
     return hasher.digest().slice(0, SALT_LEN).toString('base64');
 }
+/**
+ * Generate a NONCE (or any cryptographically random string)
+ * 
+ * @param length The length, in bytes, of the nonce
+ * @returns A promise which resolves to the nonce buffer
+ */
 export async function generateNonce(length = 16): Promise<Buffer> {
     return new Promise<Buffer>((res, rej) => {
         randomBytes(length, (err, buf) => {
@@ -88,7 +108,14 @@ function extractKey(fingerprint: string): Buffer {
     }
     return key;
 }
-
+/**
+ * Encrypt plaintext for sending down a WebSocket
+ * 
+ * @param fingerprint The device fingerprint, to be used as a key
+ * @param plaintext The plaintext to encrypt
+ * @returns A promise which resolves to an `EncryptedPayload` that is suitable to be sent in a WebSocket
+ * @throws Will throw if the fingerprint is not of a valid length
+ */
 export async function socketEncrypt(
     fingerprint: string,
     plaintext: string,
@@ -103,7 +130,14 @@ export async function socketEncrypt(
         payload: payload.toString('base64'),
     };
 }
-
+/**
+ * Decrypt ciphertext
+ * 
+ * @param fingerprint The device fingerprint, to be used as a key
+ * @param ciphertext The ciphertext to decrypt
+ * @returns The plaintext string
+ * @throws Will throw if the fingerprint is not of a valid length
+ */
 export function socketDecrypt(
     fingerprint: string,
     ciphertext: EncryptedPayload,
@@ -113,7 +147,10 @@ export function socketDecrypt(
     const cipher = createDecipheriv(ENC_ALG, key, iv);
     return cipher.update(payload, 'base64', 'utf8') + cipher.final('utf8');
 }
-
+/**
+ * Get a Nonce for WebSocket handshakes
+ * @returns A Big Integer, suitable as a large NONCE
+ */
 export function wsNonce(): bigint {
     return BigInt(bigrandom({ length: WS_NONCE_LEN, type: 'numeric' }));
 }

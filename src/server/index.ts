@@ -127,7 +127,7 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
                 const print = fingerprint({
                     deviceID: payload.deviceID,
                     nonce: resp.nonce,
-                    passHash: user.passhash,
+                    passhash: user.passhash,
                 });
                 addDevice(payload.handle, payload.deviceID, print);
             } catch (e) {
@@ -146,7 +146,7 @@ export async function setupHttpServer(argv: ServerOptions): Promise<void> {
             const payload = req.body;
             try {
                 const dev: Device = {
-                    fingerprint: payload.hash,
+                    fingerprint: payload.fingerprint,
                     verified: true,
                     id: payload.deviceID,
                     info: {

@@ -12,17 +12,42 @@ import { socketEncrypt } from '../shared/auth';
 
 const QUEUE_DB = 'messagequeues';
 const POLL_INT = 5000;
-
+/**
+ * Interface for a Queued Message
+ */
 export interface QueuedMessage {
+    /**
+     * The ID assigned by MongoDB
+     */
     _id: ObjectId;
+    /**
+     * List of addresses to send this message to
+     */
     addrs: Address[];
+    /**
+     * The server message to send
+     */
     msg: ServerMessage;
 }
-
+/**
+ * Interface for a connected device
+ */
 export interface DeviceSocket {
+    /**
+     * Handle of the user that owns this device
+     */
     handle: string;
+    /**
+     * ID of the connected device
+     */
     deviceID: string;
+    /**
+     * Fingerprint of the connected device
+     */
     fingerprint: string;
+    /**
+     * Socket through which device communication happens
+     */
     socket: WebSocket;
 }
 interface ConnectionLibrary {
@@ -40,7 +65,26 @@ async function getMessageCol(
     return client.db(QUEUE_DB).collection<QueuedMessage>(handle);
 }
 
+/**
+ * Queue many messages for sending
+ * 
+ * Use this method for increased performance when queueing large numbers
+ * of messages
+ * @param msgs Messages to queue
+ * @returns A promise that resolves when the messages have been queued
+ * @throws Will throw if the source or destination does not exist
+ */
 export async function queue(msgs: ServerMessage[]): Promise<void>;
+/**
+ * Queue a message to be sent
+ * 
+ * If the destination is a handle, then all the devices tied to that
+ * handle will be queued.
+ * 
+ * @param msg Single message to queue
+ * @returns A promise that resolves when the message has been queued
+ * @throws Will throw if the source or destination does not exist
+ */
 export async function queue(msg: ServerMessage): Promise<void>;
 export async function queue(
     msg: ServerMessage | ServerMessage[],
@@ -100,7 +144,15 @@ export async function queue(
         await queue.insertOne({ msg, addrs });
     }
 }
-
+/**
+ * Register a device for notifications
+ * 
+ * This will register a device to be sent messages as they arrive
+ * in the queue. Message order is guaranteed on a best-effort basis;
+ * the client should still ensure total ordering is maintained.
+ * 
+ * @param ds Device Socket to register
+ */
 export function register(ds: DeviceSocket): void {
     const { handle, deviceID, socket } = ds;
     if (!(handle in conns)) {
