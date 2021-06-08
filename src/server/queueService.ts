@@ -50,13 +50,9 @@ export interface DeviceSocket {
      */
     socket: WebSocket;
 }
-interface ConnectionLibrary {
-    [handle: string]: {
-        [deviceID: string]: DeviceSocket;
-    };
-}
+
 // Index with handle, then with deviceID
-const conns: ConnectionLibrary = {};
+const conns = new Map<string, Map<string, DeviceSocket>>();
 
 async function getMessageCol(
     handle: string,
@@ -155,14 +151,18 @@ export async function queue(
  */
 export function register(ds: DeviceSocket): void {
     const { handle, deviceID, socket } = ds;
-    if (!(handle in conns)) {
-        conns[ds.handle] = {};
+    if (!conns.has(handle)) {
+        conns.set(handle, new Map<string, DeviceSocket>());
     }
-    if (deviceID in conns[handle]) {
-        // we're already listening...?
+    // we just added it
+    const devs = conns.get(handle);
+    if (devs === undefined) {
+        throw new Error('Impossible State');
+    }
+    if (devs.has(deviceID)) {
         throw new Error('Device already listening...');
     }
-    conns[handle][deviceID] = ds;
+    devs.set(deviceID, ds);
 
     const closer = () => {
         socket.close();
@@ -188,9 +188,9 @@ export function register(ds: DeviceSocket): void {
                 socket.send(JSON.stringify(payload), async (err) => {
                     if (err !== undefined) {
                         // close the socket...
-                        delete conns[handle][deviceID];
-                        if (Object.keys(conns[handle]).length === 0) {
-                            delete conns[handle];
+                        conns.get(handle)?.delete(deviceID);
+                        if (!(conns.get(handle)?.size)) {
+                            conns.delete(handle);
                         }
                         closer();
                     } else {
