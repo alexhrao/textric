@@ -307,8 +307,7 @@ Rainbowtrout
 Rat
 Rattlesnake
 Raven
-Ray(Batoidea)
-Ray(Rajiformes)
+Ray
 Redpanda
 Reindeer
 Rhinoceros
