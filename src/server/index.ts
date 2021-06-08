@@ -1,5 +1,4 @@
 import express from 'express';
-import WebSocket from 'ws';
 import { Server } from 'ws';
 import { Arguments } from 'yargs';
 import yargs from 'yargs/yargs';
@@ -7,238 +6,326 @@ import { hideBin } from 'yargs/helpers';
 
 import {
     addDevice,
+    changePassword,
     completeDevice,
     createUser,
+    deleteUser,
     Device,
     generateHandle,
     getUser,
 } from './user';
 import {
     DEInitResponse,
-    HashAlgorithm,
     isDEInit,
     NONCE_LEN,
-    SALT_LEN,
     isDEComplete,
     DeviceType,
-    isWSAuth,
     isNewUser,
+    isNewPassword,
+    isDeletePayload,
+    isWSOpener,
+    WSOpenResponse,
+    isWSComplete,
+    isEncryptedPayload,
 } from '../shared/types/authentication';
-import { fakeSalt, fingerprint, generateNonce } from '../shared/auth';
 import {
-    AuthMessage,
+    fakeSalt,
+    fingerprint,
+    generateNonce,
+    socketDecrypt,
+    socketEncrypt,
+    wsNonce,
+} from '../shared/auth';
+import {
     ErrorMessage,
-    isClientMessage,
     isServerMessage,
     MessageType,
 } from '../shared/types/Message';
+import { setClient } from './mongoConnector';
+import { queue, register } from './queueService';
 
-interface ServerOptions extends Arguments {
+const enum WSAuthStep {
+    Unauthed,
+    Opened,
+    Complete,
+}
+export interface ServerOptions {
     'server-port'?: number;
     'socket-port'?: number;
+    'mongo-user'?: string;
+    'mongo-pass'?: string;
+    'mongo-url'?: string;
 }
-
-const argv = yargs(hideBin(process.argv)).options({
-    'server-port': {
-        type: 'number',
-        describe:
-            'The port to serve the HTTP express application from. Defaults to $SERVER_PORT or 3000.',
-    },
-    'socket-port': {
-        type: 'number',
-        describe:
-            'The port to serve the WebSocket server from. Defaults to $SOCKET_PORT or 8080.',
-    },
-}).argv as ServerOptions;
-
-interface DeviceSocket {
-    userID: string;
-    deviceID: string;
-    fingerprint: string;
-    socket: WebSocket;
-}
-interface ConnectionLibrary {
-    [userID: string]: {
-        [deviceID: string]: DeviceSocket;
-    };
-}
-// Index with userID, then with deviceID
-const conns: ConnectionLibrary = {};
-
-const httpPort =
-    argv['server-port'] ?? parseInt(process.env['SERVER_PORT'] ?? '3000');
-const wsPort =
-    argv['socket-port'] ?? parseInt(process.env['SOCKET_PORT'] ?? '8080');
-
-// WebSockets
-const wss = new Server({
-    port: wsPort,
-});
-
-wss.on('listening', () => {
-    console.log(`SocketServer listening on port ${wsPort}`);
-});
-
-wss.on('connection', (ws) => {
-    let authed = false;
-    let dev: DeviceSocket;
-    ws.on('message', async (data) => {
-        // client does first volley...
-        if (!authed) {
-            try {
-                const msg = JSON.parse(data.toString('utf-8'));
-                if (!isWSAuth(msg)) {
-                    throw new Error('Invalid Payload');
-                }
-                // check it
-                const user = await getUser(msg.userID);
-                if (
-                    user.devices[msg.deviceID]?.fingerprint === msg.fingerprint
-                ) {
-                    // check if our user is there
-                    if (!(msg.userID in conns)) {
-                        conns[msg.userID] = {};
-                    }
-                    if (msg.deviceID in conns[msg.userID]) {
-                        // wut
-                        throw new Error('Device already listening...');
-                    }
-                    conns[msg.userID][msg.deviceID] = {
-                        deviceID: msg.deviceID,
-                        fingerprint: msg.fingerprint,
-                        userID: msg.userID,
-                        socket: ws,
-                    };
-                    const closer = () => {
-                        delete conns[msg.userID][msg.deviceID];
-                        if (Object.keys(conns[msg.userID]).length === 0) {
-                            delete conns[msg.userID][msg.deviceID];
-                        }
-                    };
-                    ws.on('error', closer);
-                    ws.on('close', closer);
-                    dev = conns[msg.userID][msg.deviceID];
-                    const success: AuthMessage = {
-                        type: MessageType.AACK,
-                    };
-                    ws.send(JSON.stringify(success));
-                    authed = true;
-                } else {
-                    throw new Error('Invalid Fingerprint');
-                }
-            } catch (e) {
-                const err: ErrorMessage = {
-                    type: MessageType.ERR,
-                    errNo: NaN,
-                };
-                ws.send(JSON.stringify(err));
-                ws.close();
-            }
-            return;
-        }
-        try {
-            const msg = JSON.parse(data.toString('utf8'));
-            if (!isServerMessage(msg)) {
-                throw new Error('Invalid Payload');
-            }
-            // read the destination, send accordingly
-            // so... eventually, we'll need to manage queues for users with devices that aren't online...
-            // but I don't wanna do that right now. So for now, we're just going to send to devices that are awake
-            const dst = typeof msg.dst === 'string' ? msg.dst : msg.dst.userID;
-            if (!(dst in conns)) {
-                return;
-            } else {
-                msg.timeServer = Date.now();
-                Object.values(conns[dst]).forEach((ds) => {
-                    ds.socket.send(JSON.stringify(msg));
-                });
-            }
-        } catch (e) {
-            const err: ErrorMessage = {
-                type: MessageType.ERR,
-                errNo: NaN,
-            };
-            ws.send(JSON.stringify(err));
-            return;
-        }
-    });
-});
 
 // express!
-const httpServer = express();
-httpServer.use(express.json());
+export async function setupHttpServer(argv: ServerOptions): Promise<void> {
+    const httpPort =
+        argv['server-port'] ?? parseInt(process.env['SERVER_PORT'] ?? '3000');
+    const httpServer = express();
+    httpServer.use(express.json());
 
-httpServer.get('/users', async (req, res) => {
-    if (req.query['username'] !== undefined) {
+    /// User Account API
+    httpServer.get('/api/users', async (req, res) => {
         generateHandle().then((handle) => {
             res.contentType('text/plain').send(handle).end();
         });
-    } else {
-        res.sendStatus(404);
-    }
-});
+    });
 
-httpServer.post('/users', async (req, res) => {
-    if (!isNewUser(req.body)) {
-        res.sendStatus(400);
-        return;
-    }
-    await createUser(req.body);
-    res.sendStatus(204);
-});
-
-httpServer.post('/enroll', async (req, res) => {
-    // verify req.body
-    if (isDEInit(req.body)) {
-        const payload = req.body;
-        // look up user... how?
-        // TODO: Look @ local mongoDB stuff
-        // for now... can't find user. so just send back a random nonce + random salt
-        const resp: DEInitResponse = {
-            nonce: (await generateNonce(NONCE_LEN)).toString('base64'),
-            hashAlgorithm: HashAlgorithm.SHA256,
-            salt: '',
-        };
-        try {
-            const user = await getUser(payload.userID);
-            // success! fill in the salt, attach our hash (for checking later...)
-            resp.salt = user.salt;
-            const print = fingerprint({
-                deviceID: payload.deviceID,
-                hashAlg: user.hashalg,
-                nonce: resp.nonce,
-                passHash: user.passhash,
-            });
-            addDevice(payload.userID, payload.deviceID, print);
-        } catch (e) {
-            // couldn't find! fill in w/ random salt
-            resp.salt = fakeSalt(payload.userID);
+    httpServer.post('/api/users', async (req, res) => {
+        if (!isNewUser(req.body)) {
+            res.sendStatus(400);
+            return;
         }
-        res.json(resp);
-    } else if (isDEComplete(req.body)) {
-        const payload = req.body;
         try {
-            const dev: Device = {
-                fingerprint: payload.hash,
-                verified: true,
-                id: payload.deviceID,
-                info: {
-                    name: payload.info?.name ?? payload.deviceID,
-                    os: payload.info?.os ?? 'Unknown',
-                    type: payload.info?.type ?? DeviceType.Unknown,
-                },
-            };
-            await completeDevice(payload.userID, dev);
+            await createUser(req.body);
             res.sendStatus(204);
         } catch (e) {
-            res.sendStatus(401);
+            res.sendStatus(404);
         }
-    } else {
-        res.sendStatus(400);
-        return;
-    }
-});
+    });
 
-httpServer.listen(httpPort, () => {
-    console.log(`HTTPServer listening on port ${httpPort}`);
-});
+    httpServer.patch('/api/users', async (req, res) => {
+        if (!isNewPassword(req.body)) {
+            res.sendStatus(400);
+            return;
+        }
+        try {
+            const { handle, oldPassword, newPassword } = req.body;
+            await changePassword(handle, oldPassword, newPassword);
+            res.sendStatus(204);
+        } catch (e) {
+            res.sendStatus(404);
+        }
+    });
+
+    httpServer.put('/api/users', async (req, res) => {
+        if (!isDeletePayload(req.body)) {
+            res.sendStatus(400);
+            return;
+        }
+        try {
+            await deleteUser(req.body.handle, req.body.hash);
+            res.sendStatus(204);
+        } catch (e) {
+            res.sendStatus(404);
+        }
+    });
+
+    /// Device API
+    httpServer.post('/api/devices', async (req, res) => {
+        // verify req.body
+        if (isDEInit(req.body)) {
+            const payload = req.body;
+            const resp: DEInitResponse = {
+                nonce: (await generateNonce(NONCE_LEN)).toString('base64'),
+                salt: '',
+            };
+            try {
+                const user = await getUser(payload.handle);
+                // success! fill in the salt, attach our hash (for checking later...)
+                resp.salt = user.salt;
+                const print = fingerprint({
+                    deviceID: payload.deviceID,
+                    nonce: resp.nonce,
+                    passhash: user.passhash,
+                });
+                addDevice(payload.handle, payload.deviceID, print);
+            } catch (e) {
+                // couldn't find! fill in w/ random salt
+                resp.salt = fakeSalt(payload.handle);
+            }
+            res.json(resp);
+        } else {
+            res.sendStatus(400);
+            return;
+        }
+    });
+
+    httpServer.put('/api/devices', async (req, res) => {
+        if (isDEComplete(req.body)) {
+            const payload = req.body;
+            try {
+                const dev: Device = {
+                    fingerprint: payload.fingerprint,
+                    verified: true,
+                    id: payload.deviceID,
+                    info: {
+                        name: payload.info?.name ?? payload.deviceID,
+                        os: payload.info?.os ?? 'Unknown',
+                        type: payload.info?.type ?? DeviceType.Unknown,
+                    },
+                };
+                const nonce = await completeDevice(payload.handle, dev);
+                res.status(200).contentType('text/plain').send(nonce);
+            } catch (e) {
+                res.sendStatus(401);
+            }
+        } else {
+            res.sendStatus(400);
+        }
+    });
+
+    return new Promise<void>((res) => {
+        httpServer.listen(httpPort, () => {
+            console.log(`HTTPServer listening on port ${httpPort}`);
+            res();
+        });
+    });
+}
+
+export async function setupSocketServer(argv: ServerOptions): Promise<void> {
+    // WebSockets
+    const wsPort =
+        argv['socket-port'] ?? parseInt(process.env['SOCKET_PORT'] ?? '8080');
+    const wss = new Server({
+        port: wsPort,
+    });
+
+    wss.on('connection', (ws) => {
+        let authed = WSAuthStep.Unauthed;
+        const nonce = BigInt(wsNonce().toString());
+        let dev: Device;
+        let handle: string;
+        ws.on('message', async (data) => {
+            // client does first volley...
+            if (authed === WSAuthStep.Unauthed) {
+                try {
+                    const msg = JSON.parse(data.toString('utf-8'));
+                    if (!isWSOpener(msg)) {
+                        throw new Error('Invalid Payload');
+                    }
+                    // check it
+                    const user = await getUser(msg.handle);
+                    handle = msg.handle;
+                    // decrypt payload with fingerprint as key
+                    const tmp = user.devices.get(msg.deviceID);
+                    if (tmp === undefined) {
+                        throw new Error('Invalid Device');
+                    } else {
+                        dev = tmp;
+                    }
+                    // otherwise, decrypt with our fingerprint. it'll contain a nonce as a string; use BigInt to find
+                    const devNonce = BigInt(
+                        socketDecrypt(dev.fingerprint, msg.devNonce),
+                    );
+                    const devInc = await socketEncrypt(
+                        dev.fingerprint,
+                        (devNonce + 1n).toString(),
+                    );
+                    const srvNonce = await socketEncrypt(
+                        dev.fingerprint,
+                        nonce.toString(),
+                    );
+                    const resp: WSOpenResponse = { devInc, srvNonce };
+                    ws.send(JSON.stringify(resp));
+                    authed = WSAuthStep.Opened;
+                } catch (e) {
+                    const err: ErrorMessage = {
+                        type: MessageType.ERR,
+                        errNo: 1,
+                    };
+                    ws.send(JSON.stringify(err));
+                    ws.close();
+                }
+            } else if (authed === WSAuthStep.Opened) {
+                try {
+                    const msg = JSON.parse(data.toString('utf8'));
+                    if (!isWSComplete(msg)) {
+                        throw new Error('Invalid Payload');
+                    }
+                    // check that nonce is correct...
+                    const srvCand = BigInt(
+                        socketDecrypt(dev.fingerprint, msg.srvInc),
+                    );
+                    if (srvCand !== nonce + 1n) {
+                        throw new Error('Nonce does not match');
+                    }
+                    await register({
+                        deviceID: dev.id,
+                        fingerprint: dev.fingerprint,
+                        handle,
+                        socket: ws,
+                    });
+                    authed = WSAuthStep.Complete;
+                } catch (e) {
+                    const err: ErrorMessage = {
+                        type: MessageType.ERR,
+                        errNo: 1,
+                    };
+                    ws.send(JSON.stringify(err));
+                    ws.close();
+                }
+            } else {
+                try {
+                    const payload = JSON.parse(data.toString('utf8'));
+                    if (!isEncryptedPayload(payload)) {
+                        throw new Error('Invalid payload');
+                    }
+                    const msg = JSON.parse(
+                        socketDecrypt(dev.fingerprint, payload),
+                    );
+                    if (!isServerMessage(msg)) {
+                        throw new Error('Invalid Payload');
+                    }
+                    msg.timeServer = Date.now();
+                    queue(msg);
+                } catch (e) {
+                    const err: ErrorMessage = {
+                        type: MessageType.ERR,
+                        errNo: NaN,
+                    };
+                    ws.send(JSON.stringify(err));
+                    return;
+                }
+            }
+        });
+    });
+    return new Promise<void>((res) => {
+        wss.on('listening', () => {
+            console.log(`SocketServer listening on port ${wsPort}`);
+            res();
+        });
+    });
+}
+
+if (require.main === module) {
+    const argv = yargs(hideBin(process.argv)).options({
+        'server-port': {
+            type: 'number',
+            describe:
+                'The port to serve the HTTP express application from. Defaults to $SERVER_PORT or 3000.',
+        },
+        'socket-port': {
+            type: 'number',
+            describe:
+                'The port to serve the WebSocket server from. Defaults to $SOCKET_PORT or 8080.',
+        },
+        'mongo-user': {
+            type: 'string',
+            describe:
+                'The username to use for the MongoDB connection. Defaults to $MONGO_USER',
+        },
+        'mongo-pass': {
+            type: 'string',
+            describe:
+                'The password to use for the MongoDB connection. Defaults to $MONGO_PASS',
+        },
+        'mongo-url': {
+            type: 'string',
+            describe:
+                'The URL to use for the MongoDB connection. Defaults to $MONGO_URL',
+        },
+    }).argv as ServerOptions & Arguments;
+
+    if (
+        argv['mongo-user'] !== undefined &&
+        argv['mongo-pass'] !== undefined &&
+        argv['mongo-url'] !== undefined
+    ) {
+        setClient(argv['mongo-user'], argv['mongo-pass'], argv['mongo-url']);
+    } else {
+        setClient();
+    }
+    setupHttpServer(argv);
+    setupSocketServer(argv);
+}

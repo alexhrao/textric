@@ -13,36 +13,36 @@ describe('Address Tests', function () {
             expect(Message.isAddress('hello')).to.equal(false);
         });
     });
-    describe('Must have userID and deviceID fields', function () {
-        it('Should return false if missing userID field', function () {
-            const noUserID: unknown = { deviceID: 'TEST' };
-            expect(Message.isAddress(noUserID)).to.equal(false);
+    describe('Must have handle and deviceID fields', function () {
+        it('Should return false if missing handle field', function () {
+            const nohandle: unknown = { deviceID: 'TEST' };
+            expect(Message.isAddress(nohandle)).to.equal(false);
         });
         it('Should return false if missing deviceID field', function () {
-            const noDeviceID: unknown = { userID: 'TEST' };
+            const noDeviceID: unknown = { handle: 'TEST' };
             expect(Message.isAddress(noDeviceID)).to.equal(false);
         });
     });
-    describe('userID and deviceID must be strings', function () {
-        it('Should return false if userID is not string', function () {
-            const badUserID: unknown = { userID: 1, deviceID: 'TEST' };
-            expect(Message.isAddress(badUserID)).to.equal(false);
+    describe('handle and deviceID must be strings', function () {
+        it('Should return false if handle is not string', function () {
+            const badhandle: unknown = { handle: 1, deviceID: 'TEST' };
+            expect(Message.isAddress(badhandle)).to.equal(false);
         });
         it('Should return false if deviceID is not string', function () {
-            const badDeviceID: unknown = { userID: 'TEST', deviceID: 1 };
+            const badDeviceID: unknown = { handle: 'TEST', deviceID: 1 };
             expect(Message.isAddress(badDeviceID)).to.equal(false);
         });
     });
     describe('Validate properly declared Address and unknown type with proper fields', function () {
         it('Should return true on correctly structured Address', function () {
             const goodAddress: Message.Address = {
-                userID: 'TEST',
+                handle: 'TEST',
                 deviceID: 'TEST',
             };
             expect(Message.isAddress(goodAddress)).to.equal(true);
         });
         it('Should return true on correctly structured unknown object', function () {
-            const goodAddress: unknown = { userID: 'TEST', deviceID: 'TEST' };
+            const goodAddress: unknown = { handle: 'TEST', deviceID: 'TEST' };
             expect(Message.isAddress(goodAddress)).to.equal(true);
         });
     });
@@ -822,7 +822,7 @@ describe('isMessage Tests', function () {
     describe('Must not validate non-messages', function () {
         it('Should return false on non-message object', function () {
             const addr: Message.Address = {
-                userID: 'hello',
+                handle: 'hello',
                 deviceID: 'world',
             };
             expect(Message.isMessage(addr)).to.equal(false);
@@ -911,7 +911,7 @@ describe('isCommMessage Tests', function () {
         });
         it('Should return false on non-message object', function () {
             const addr: Message.Address = {
-                userID: 'hello',
+                handle: 'hello',
                 deviceID: 'world',
             };
             expect(Message.isCommMessage(addr)).to.equal(false);
@@ -933,7 +933,7 @@ describe('isClientMessage Tests', function () {
     });
     describe('Must have src, dst, timeServer, and payload fields', function () {
         it('Should return false if missing src field', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -945,7 +945,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(noSrc)).to.equal(false);
         });
         it('Should return false if missing dst field', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -957,7 +957,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(noDst)).to.equal(false);
         });
         it('Should return false if missing timeServer field', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -969,7 +969,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(noTimeServer)).to.equal(false);
         });
         it('Should return false if missing payload field', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const noPayload: unknown = {
                 src: tempAddr,
                 dst: tempAddr,
@@ -980,7 +980,7 @@ describe('isClientMessage Tests', function () {
     });
     describe('Fields must have correct types', function () {
         it('Should return false if src is not an Address', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -993,7 +993,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(badSrc)).to.equal(false);
         });
         it('Should return false if dst is not a string or Address', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -1006,7 +1006,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(badDst)).to.equal(false);
         });
         it('Should return false if timeServer is not a number', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -1019,7 +1019,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(badTimeServer)).to.equal(false);
         });
         it('Should return false if payload is not a Message', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const badPayload: unknown = {
                 src: 'hi',
                 dst: tempAddr,
@@ -1031,7 +1031,7 @@ describe('isClientMessage Tests', function () {
     });
     describe('Validate on properly formed ClientMessage or unknown type with proper fields', function () {
         it('Should return true on proper ClientMessage with Address dst', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -1044,7 +1044,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(clientMsg)).to.equal(true);
         });
         it('Should return true on proper ClientMessage with string dst', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -1057,7 +1057,7 @@ describe('isClientMessage Tests', function () {
             expect(Message.isClientMessage(clientMsg)).to.equal(true);
         });
         it('Should return true on unknown with proper fields', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const tempAlive: Message.AliveMessage = {
                 type: Message.MessageType.ALIV,
             };
@@ -1086,7 +1086,7 @@ describe('isServerMessage Tests', function () {
     });
     describe('Must have src, dst, timeServer, and payload fields', function () {
         it('Should return false if missing src field', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const noSrc: unknown = {
                 dst: tempAddr,
                 timeServer: 1,
@@ -1095,7 +1095,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(noSrc)).to.equal(false);
         });
         it('Should return false if missing dst field', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const noDst: unknown = {
                 src: tempAddr,
                 timeServer: 1,
@@ -1104,7 +1104,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(noDst)).to.equal(false);
         });
         it('Should return false if missing payload field', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const noPayload: unknown = {
                 src: tempAddr,
                 dst: tempAddr,
@@ -1115,7 +1115,7 @@ describe('isServerMessage Tests', function () {
     });
     describe('Fields must have correct types', function () {
         it('Should return false if src is not an Address', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const badSrc: unknown = {
                 src: 'hi',
                 dst: tempAddr,
@@ -1125,7 +1125,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(badSrc)).to.equal(false);
         });
         it('Should return false if dst is not a string or Address', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const badDst: unknown = {
                 src: tempAddr,
                 dst: 1,
@@ -1135,7 +1135,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(badDst)).to.equal(false);
         });
         it('Should return false if timeServer is not a number', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const badTimeServer: unknown = {
                 src: tempAddr,
                 dst: 'hello',
@@ -1145,7 +1145,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(badTimeServer)).to.equal(false);
         });
         it('Should return false if payload is not a Message', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const badPayload: unknown = {
                 src: 'hi',
                 dst: tempAddr,
@@ -1157,7 +1157,7 @@ describe('isServerMessage Tests', function () {
     });
     describe('Validate on properly formed ServerMessage or unknown type with proper fields', function () {
         it('Should return true on proper ServerMessage with Address dst', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const serverMsg: Message.ServerMessage = {
                 src: tempAddr,
                 dst: tempAddr,
@@ -1167,7 +1167,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(serverMsg)).to.equal(true);
         });
         it('Should return true on proper ServerMessage with string dst', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const serverMsg: Message.ServerMessage = {
                 src: tempAddr,
                 dst: 'hello',
@@ -1177,7 +1177,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(serverMsg)).to.equal(true);
         });
         it('Should return true on proper ServerMessage with no timeServer', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const serverMsg: Message.ServerMessage = {
                 src: tempAddr,
                 dst: 'hello',
@@ -1186,7 +1186,7 @@ describe('isServerMessage Tests', function () {
             expect(Message.isServerMessage(serverMsg)).to.equal(true);
         });
         it('Should return true on unknown with proper fields', function () {
-            const tempAddr: Message.Address = { userID: 'hi', deviceID: 'hi' };
+            const tempAddr: Message.Address = { handle: 'hi', deviceID: 'hi' };
             const serverMsg: Message.ServerMessage = {
                 src: tempAddr,
                 dst: tempAddr,
