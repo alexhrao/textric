@@ -198,10 +198,12 @@ export async function setupSocketServer(argv: ServerOptions): Promise<void> {
                     const user = await getUser(msg.handle);
                     handle = msg.handle;
                     // decrypt payload with fingerprint as key
-                    if (user.devices[msg.deviceID] === undefined) {
+                    const tmp = user.devices.get(msg.deviceID);
+                    if (tmp === undefined) {
                         throw new Error('Invalid Device');
+                    } else {
+                        dev = tmp;
                     }
-                    dev = user.devices[msg.deviceID];
                     // otherwise, decrypt with our fingerprint. it'll contain a nonce as a string; use BigInt to find
                     const devNonce = BigInt(
                         socketDecrypt(dev.fingerprint, msg.devNonce),
@@ -238,7 +240,7 @@ export async function setupSocketServer(argv: ServerOptions): Promise<void> {
                     if (srvCand !== nonce + 1n) {
                         throw new Error('Nonce does not match');
                     }
-                    register({
+                    await register({
                         deviceID: dev.id,
                         fingerprint: dev.fingerprint,
                         handle,

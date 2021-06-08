@@ -144,7 +144,7 @@ export function socketDecrypt(
 ): string {
     const key = extractKey(fingerprint);
     const { iv, payload } = ciphertext;
-    const cipher = createDecipheriv(ENC_ALG, key, iv);
+    const cipher = createDecipheriv(ENC_ALG, key, Buffer.from(iv, 'base64'));
     return cipher.update(payload, 'base64', 'utf8') + cipher.final('utf8');
 }
 /**

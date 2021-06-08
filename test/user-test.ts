@@ -33,15 +33,15 @@ chai.use(asPromised);
 
 setupMongo();
 
-describe('User Unit Tests', () => {
-    beforeEach(async () => {
+describe('User Unit Tests', function () {
+    beforeEach(async function () {
         // Uncomment to scrub mongoDB clean
         //await resetMongo();
     });
-    after(async () => {
+    after(async function () {
         await closeMongo();
     });
-    it('Should generate valid handles', async () => {
+    it('Should generate valid handles', async function () {
         for (let i = 0; i < 10; ++i) {
             const handle = await generateHandle();
             // handle should match {string}#{5-digit#}
@@ -49,7 +49,7 @@ describe('User Unit Tests', () => {
         }
     });
 
-    it('Should store handle in MongoDB', async () => {
+    it('Should store handle in MongoDB', async function () {
         const handle = await generateHandle();
         const inDB = await (await getClient())
             .db(DB)
@@ -62,7 +62,7 @@ describe('User Unit Tests', () => {
             .that.is.greaterThan(Date.now() - userConsts.HANDLE_TTL);
     });
 
-    it('Should reject unrequested handle', async () => {
+    it('Should reject unrequested handle', async function () {
         expect(
             createUser({
                 handle: 'UnrequestedHandle#12345',
@@ -71,7 +71,7 @@ describe('User Unit Tests', () => {
         ).to.be.rejected;
     });
 
-    it('Should create a valid user', async () => {
+    it('Should create a valid user', async function () {
         const password = 'password';
         const handle = await generateHandle();
         await expect(createUser({ handle, password })).to.be.fulfilled;
@@ -90,7 +90,7 @@ describe('User Unit Tests', () => {
         expect(inDB).to.have.property('salt');
     });
 
-    it('Should reject a user that already exists', async () => {
+    it('Should reject a user that already exists', async function () {
         // get a handle
         const password = 'password';
         const handle = await generateHandle();
@@ -107,21 +107,22 @@ describe('User Unit Tests', () => {
         await expect(createUser({ handle, password })).to.be.rejected;
     });
 
-    it('Should throw on unknown user', async () => {
+    it('Should throw on unknown user', async function () {
         const handle = await generateHandle();
         await expect(getUser(handle)).to.be.rejected;
     });
 
-    it('Should retrieve the correct user', async () => {
+    it('Should retrieve the correct user', async function () {
         const password = 'password';
         const handle = await generateHandle();
         await expect(createUser({ handle, password })).to.be.fulfilled;
 
         const res: User = await expect(getUser(handle)).to.be.fulfilled;
         expect(res).to.have.property('handle', handle);
+        expect(res).to.have.property('devices').to.be.instanceOf(Map);
     });
 
-    it('Should not delete user with wrong password', async () => {
+    it('Should not delete user with wrong password', async function () {
         const password = 'password';
         const handle = await generateHandle();
         await expect(createUser({ handle, password })).to.be.fulfilled;
@@ -134,7 +135,7 @@ describe('User Unit Tests', () => {
         expect(test).not.to.be.null;
     });
 
-    it('Should delete user with right hash', async () => {
+    it('Should delete user with right hash', async function () {
         const password = 'password';
         const handle = await generateHandle();
         await expect(createUser({ handle, password })).to.be.fulfilled;
@@ -149,7 +150,7 @@ describe('User Unit Tests', () => {
         expect(test).to.be.null;
     });
 
-    it('Should not change password for invalid current password', async () => {
+    it('Should not change password for invalid current password', async function () {
         const password = 'password';
         const handle = await generateHandle();
         await expect(createUser({ handle, password })).to.be.fulfilled;
@@ -158,7 +159,7 @@ describe('User Unit Tests', () => {
             .be.rejected;
     });
 
-    it('Should change the password', async () => {
+    it('Should change the password', async function () {
         const password = 'password';
         const handle = await generateHandle();
         const devID = '12:34:56:78';
@@ -179,20 +180,21 @@ describe('User Unit Tests', () => {
         // devices should be revoked, passhash & salt should be different
         expect(oldUser.passhash).not.to.equal(newUser.passhash);
         expect(oldUser.salt).not.to.equal(newUser.salt);
-        expect(newUser).to.have.property('devices').to.deep.equal({});
+        expect(newUser).to.have.property('devices').to.be.instanceOf(Map);
+        expect(newUser.devices.size).to.be.equal(0);
     });
 });
 
-describe('User Device Unit Tests', async () => {
-    beforeEach(async () => {
+describe('User Device Unit Tests', async function () {
+    beforeEach(async function () {
         // Uncomment to scrub mongoDB clean
         //await resetMongo();
     });
-    after(async () => {
+    after(async function () {
         await closeMongo();
     });
 
-    it('Should not add device to non-existent user', async () => {
+    it('Should not add device to non-existent user', async function () {
         const handle = 'NonexistentUser#12345';
         const deviceID = '12:34:56';
         const print = fingerprint({
@@ -203,7 +205,7 @@ describe('User Device Unit Tests', async () => {
         await expect(addDevice(handle, deviceID, print)).to.be.rejected;
     });
 
-    it('Should add unverified device', async () => {
+    it('Should add unverified device', async function () {
         const handle = await generateHandle();
         const password = 'password';
         const deviceID = '12:34:56';
@@ -215,12 +217,11 @@ describe('User Device Unit Tests', async () => {
         await expect(addDevice(handle, deviceID, print)).to.be.fulfilled;
         const user = await getUser(handle);
         const expectedDevice = defaultDevice(deviceID, print);
-        const devs: { [key: string]: Device } = {};
-        devs[deviceID] = expectedDevice;
-        expect(user).to.have.deep.property('devices', devs);
+        expect(user).to.have.property('devices').to.be.instanceOf(Map);
+        expect(user.devices.get(deviceID)).to.be.deep.equal(expectedDevice);
     });
 
-    it('Should overwrite unverified device', async () => {
+    it('Should overwrite unverified device', async function () {
         const handle = await generateHandle();
         const password = 'password';
         const deviceID = '12:34:56';
@@ -236,12 +237,11 @@ describe('User Device Unit Tests', async () => {
 
         const user = await getUser(handle);
         const expectedDevice = defaultDevice(deviceID, newPrint);
-        const devs: { [key: string]: Device } = {};
-        devs[deviceID] = expectedDevice;
-        expect(user).to.have.deep.property('devices', devs);
+        expect(user).to.have.property('devices').to.be.instanceOf(Map);
+        expect(user.devices.get(deviceID)).to.be.deep.equal(expectedDevice);
     });
 
-    it('Should revoke device', async () => {
+    it('Should revoke device', async function () {
         const handle = await generateHandle();
         const password = 'password';
         const deviceID = '12:34:56';
@@ -253,10 +253,11 @@ describe('User Device Unit Tests', async () => {
         await addDevice(handle, deviceID, print);
         await expect(revokeDevice(handle, deviceID, print)).to.be.fulfilled;
         const user = await getUser(handle);
-        expect(user).to.have.deep.property('devices', {});
+        expect(user).to.have.property('devices').to.be.instanceOf(Map);
+        expect(user.devices.size).to.be.equal(0);
     });
 
-    it('Should not revoke device with incorrect print', async () => {
+    it('Should not revoke device with incorrect print', async function () {
         const handle = await generateHandle();
         const password = 'password';
         const deviceID = '12:34:56';
@@ -270,12 +271,11 @@ describe('User Device Unit Tests', async () => {
             .rejected;
         const user = await getUser(handle);
         const expectedDevice = defaultDevice(deviceID, print);
-        const devs: { [key: string]: Device } = {};
-        devs[deviceID] = expectedDevice;
-        expect(user).to.have.deep.property('devices', devs);
+        expect(user).to.have.property('devices').to.be.instanceOf(Map);
+        expect(user.devices.get(deviceID)).to.be.deep.equal(expectedDevice);
     });
 
-    it('Should not complete device registration with wrong print', async () => {
+    it('Should not complete device registration with wrong print', async function () {
         const handle = await generateHandle();
         const password = 'password';
         const deviceID = '12:34:56';
@@ -290,12 +290,11 @@ describe('User Device Unit Tests', async () => {
         const badDevice = { ...expectedDevice };
         badDevice.fingerprint += '1';
         await expect(completeDevice(handle, badDevice)).to.be.rejected;
-        const devs: { [key: string]: Device } = {};
-        devs[deviceID] = expectedDevice;
-        expect(user).to.have.deep.property('devices', devs);
+        expect(user).to.have.property('devices').to.be.instanceOf(Map);
+        expect(user.devices.get(deviceID)).to.be.deep.equal(expectedDevice);
     });
 
-    it('Should complete device registration', async () => {
+    it('Should complete device registration', async function () {
         const handle = await generateHandle();
         const password = 'password';
         const deviceID = '12:34:56';
@@ -323,8 +322,7 @@ describe('User Device Unit Tests', async () => {
         });
         expectedDevice.fingerprint = newPrint;
         const user = await getUser(handle);
-        const devs: { [key: string]: Device } = {};
-        devs[deviceID] = expectedDevice;
-        expect(user).to.have.deep.property('devices', devs);
+        expect(user).to.have.property('devices').to.be.instanceOf(Map);
+        expect(user.devices.get(deviceID)).to.be.deep.equal(expectedDevice);
     });
 });

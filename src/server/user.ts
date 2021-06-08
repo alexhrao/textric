@@ -103,14 +103,10 @@ export interface User {
     createdate: number;
     /**
      * The devices this user has already registered
+     *
+     * The Key is the device ID, the unique identifier used at the enrollment step.
      */
-    devices: {
-        /**
-         * The deviceID is the unique identifier used at the enrollment step;
-         * This key will return a given Device, or `undefined` otherwise
-         */
-        [deviceID: string]: Device;
-    };
+    devices: Map<string, Device>;
 }
 /**
  * A candidate for a user handle. This is a handle that has been generated,
@@ -215,7 +211,7 @@ export async function createUser(user: NewUserPayload): Promise<void> {
     const payload: User = {
         handle: user.handle,
         createdate: Date.now(),
-        devices: {},
+        devices: new Map(),
         passhash: hash.hash,
         salt: hash.salt,
     };
@@ -242,7 +238,9 @@ export async function getUser(handle: string): Promise<User> {
     if (user === null) {
         throw new Error(`User with handle ${handle} not found`);
     } else {
-        return { ...user };
+        const out = { ...user };
+        out.devices = new Map(Object.entries(user.devices));
+        return out;
     }
 }
 
@@ -287,7 +285,7 @@ export async function changePassword(
         throw new Error('Old password is incorrect');
     } else {
         const pass = await hashPassword(newPass);
-        user.devices = {};
+        user.devices = new Map();
         user.passhash = pass.hash;
         user.salt = pass.salt;
         await updateUser(user);
@@ -313,10 +311,10 @@ export async function revokeDevice(
 ): Promise<void> {
     const user = await getUser(handle);
     if (
-        deviceID in user.devices &&
-        user.devices[deviceID].fingerprint === print
+        user.devices.has(deviceID) &&
+        user.devices.get(deviceID)?.fingerprint === print
     ) {
-        delete user.devices[deviceID];
+        user.devices.delete(deviceID);
         await updateUser(user);
     } else {
         throw new Error('Bad Authentication');
@@ -343,11 +341,11 @@ export async function addDevice(
     print: string,
 ): Promise<void> {
     const user = await getUser(handle);
-    if (deviceID in user.devices && user.devices[deviceID].verified) {
+    if (user.devices.has(deviceID) && user.devices.get(deviceID)?.verified) {
         // bad!
         throw new Error('Device already exists');
     }
-    user.devices[deviceID] = defaultDevice(deviceID, print);
+    user.devices.set(deviceID, defaultDevice(deviceID, print));
     await updateUser(user);
 }
 /**
@@ -373,25 +371,32 @@ export async function completeDevice(
     // check if prints match
     try {
         const user = await getUser(handle);
-        if (device.id in user.devices) {
+        if (user.devices.has(device.id)) {
             // check the prints
-            if (device.fingerprint !== user.devices[device.id].fingerprint) {
+            if (
+                device.fingerprint !== user.devices.get(device.id)?.fingerprint
+            ) {
                 throw new Error('Authentication Error');
             } else {
                 // ready!
-                user.devices[device.id].id = device.id;
-                user.devices[device.id].verified = true;
-                user.devices[device.id].info = {
+                const info = {
                     name: device.info.name,
                     os: device.info.os,
                     type: device.info.type,
                 };
                 const nonce = await generateNonce(NONCE_LEN);
-                user.devices[device.id].fingerprint = fingerprint({
+                const print = fingerprint({
                     deviceID: device.id,
                     nonce: nonce.toString('base64'),
                     passhash: user.passhash,
                 });
+                const dev: Device = {
+                    id: device.id,
+                    verified: true,
+                    info,
+                    fingerprint: print,
+                };
+                user.devices.set(device.id, dev);
                 await updateUser(user);
                 return nonce.toString('base64');
             }
