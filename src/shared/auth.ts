@@ -20,7 +20,7 @@ const WS_NONCE_LEN = 32;
 
 /**
  * Hash a password using Scrypt
- * 
+ *
  * @param pass The password to hash
  * @param salt The salt to use. Note that this salt should be cryptographically random
  * @returns A promise that resolves to the hashed password + salt
@@ -30,9 +30,9 @@ export async function hashPassword(
     salt: string,
 ): Promise<PasswordHash>;
 /** Hash a password using Scrypt
- * 
+ *
  * The salt is randomly generated using `generateNonce`.
- * 
+ *
  * @see generateNonce
  * @param pass The password to hash
  * @returns A promise that resolves to the hashed password + salt
@@ -58,7 +58,7 @@ export async function hashPassword(
 }
 
 /** Generate a fingerprint for the given device
- * 
+ *
  * @param payload The device information to fingerprint.
  * @returns A string, which is the base64 encoded fingerprint
  */
@@ -70,11 +70,11 @@ export function fingerprint(payload: HashPayload): string {
     return hasher.digest().toString('base64');
 }
 /** Generate a fake salt
- * 
+ *
  * This salt is **not meant** for real consumption; it is meant
  * to be feigned as a real one, to hide the existence of a
  * given user handle
- * 
+ *
  * @param handle The handle for which to generate the fake salt
  * @returns A fake salt to use for user privacy
  */
@@ -85,7 +85,7 @@ export function fakeSalt(handle: string): string {
 }
 /**
  * Generate a NONCE (or any cryptographically random string)
- * 
+ *
  * @param length The length, in bytes, of the nonce
  * @returns A promise which resolves to the nonce buffer
  */
@@ -110,7 +110,7 @@ function extractKey(fingerprint: string): Buffer {
 }
 /**
  * Encrypt plaintext for sending down a WebSocket
- * 
+ *
  * @param fingerprint The device fingerprint, to be used as a key
  * @param plaintext The plaintext to encrypt
  * @returns A promise which resolves to an `EncryptedPayload` that is suitable to be sent in a WebSocket
@@ -132,7 +132,7 @@ export async function socketEncrypt(
 }
 /**
  * Decrypt ciphertext
- * 
+ *
  * @param fingerprint The device fingerprint, to be used as a key
  * @param ciphertext The ciphertext to decrypt
  * @returns The plaintext string

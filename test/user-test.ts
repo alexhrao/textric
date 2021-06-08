@@ -316,7 +316,11 @@ describe('User Device Unit Tests', async () => {
             },
         };
         const newNonce = await completeDevice(handle, expectedDevice);
-        const newPrint = fingerprint({ deviceID, nonce: newNonce, passhash: passHash });
+        const newPrint = fingerprint({
+            deviceID,
+            nonce: newNonce,
+            passhash: passHash,
+        });
         expectedDevice.fingerprint = newPrint;
         const user = await getUser(handle);
         const devs: { [key: string]: Device } = {};

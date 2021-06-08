@@ -67,7 +67,7 @@ async function getMessageCol(
 
 /**
  * Queue many messages for sending
- * 
+ *
  * Use this method for increased performance when queueing large numbers
  * of messages
  * @param msgs Messages to queue
@@ -77,10 +77,10 @@ async function getMessageCol(
 export async function queue(msgs: ServerMessage[]): Promise<void>;
 /**
  * Queue a message to be sent
- * 
+ *
  * If the destination is a handle, then all the devices tied to that
  * handle will be queued.
- * 
+ *
  * @param msg Single message to queue
  * @returns A promise that resolves when the message has been queued
  * @throws Will throw if the source or destination does not exist
@@ -146,11 +146,11 @@ export async function queue(
 }
 /**
  * Register a device for notifications
- * 
+ *
  * This will register a device to be sent messages as they arrive
  * in the queue. Message order is guaranteed on a best-effort basis;
  * the client should still ensure total ordering is maintained.
- * 
+ *
  * @param ds Device Socket to register
  */
 export function register(ds: DeviceSocket): void {
