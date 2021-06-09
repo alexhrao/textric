@@ -1,6 +1,7 @@
 # Security Policy
 
 ## Supported Versions
+
 As this is still in alpha state, **no version is supported**; only the latest, bleeding-edge build is supported.
 
 ## Reporting a Vulnerability
