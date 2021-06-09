@@ -124,7 +124,9 @@ export interface HandleCandidate {
 }
 
 function properNoun(str: string): string {
-    return str.charAt(0).toLocaleUpperCase() + str.slice(1).toLocaleLowerCase();
+    return str.toLocaleLowerCase().replace(/\s+/g, (_, ind: number) =>
+        str.charAt(ind + 1).toLocaleUpperCase()
+    );
 }
 
 async function getUserCol(): Promise<Collection<User>> {
