@@ -8,7 +8,7 @@
         "server": "npm start",
         "start": "node dist/server/index.js",
         "client": "node dist/client/index.js",
-        "test": "mocha dist/test/**/*.js",
+        "test": "mocha --require dist/test/hooks.js dist/test/**/*.js",
         "lint": "eslint . --ext .ts",
         "lint:fix": "eslint . --ext .ts --fix && prettier --loglevel silent --write ."
     },

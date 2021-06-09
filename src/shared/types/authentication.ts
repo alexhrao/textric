@@ -44,7 +44,7 @@ export function isNewUser(user: unknown): user is NewUserPayload {
         typeof payload.password !== 'string'
     ) {
         return false;
-    } else if (payload.password.length === 0) {
+    } else if (payload.password.length === 0 || payload.handle.length === 0) {
         return false;
     } else {
         return true;
@@ -91,7 +91,7 @@ export function isDEInit(init: unknown): init is DEInit {
         typeof payload.deviceID !== 'string'
     ) {
         return false;
-    } else if (payload.deviceID.length === 0) {
+    } else if (payload.deviceID.length === 0 || payload.handle.length === 0) {
         return false;
     } else {
         return true;
@@ -114,14 +114,14 @@ export function isDEInitResponse(init: unknown): init is DEInitResponse {
     const payload = <DEInitResponse>init;
     if (typeof init !== 'object' || init === null || init === undefined) {
         return false;
-    } else if (
-        !('salt' in init && 'hashAlgorithm' in init && 'nonce' in init)
-    ) {
+    } else if (!('salt' in init && 'nonce' in init)) {
         return false;
     } else if (
         typeof payload.salt !== 'string' ||
         typeof payload.nonce !== 'string'
     ) {
+        return false;
+    } else if (payload.salt.length === 0 || payload.nonce.length === 0) {
         return false;
     } else {
         return true;
@@ -165,13 +165,19 @@ export function isDEComplete(comp: unknown): comp is DEComplete {
     const payload = <DEComplete>comp;
     if (typeof comp !== 'object' || comp === null || comp === undefined) {
         return false;
-    } else if (!('handle' in comp && 'deviceID' in comp && 'hash' in comp)) {
+    } else if (
+        !('handle' in comp && 'deviceID' in comp && 'fingerprint' in comp)
+    ) {
         return false;
     } else if (
         typeof payload.handle !== 'string' ||
         typeof payload.deviceID !== 'string' ||
         typeof payload.fingerprint !== 'string'
     ) {
+        return false;
+    } else if (payload.handle.length === 0 || payload.deviceID.length === 0) {
+        return false;
+    } else if (Buffer.from(payload.fingerprint, 'base64').length !== KEY_LEN) {
         return false;
     } else {
         return true;
@@ -201,6 +207,8 @@ export function isEncryptedPayload(p: unknown): p is EncryptedPayload {
     }
     const payload = <EncryptedPayload>p;
     if (typeof payload.iv !== 'string' || typeof payload.payload !== 'string') {
+        return false;
+    } else if (Buffer.from(payload.iv, 'base64').length !== 16) {
         return false;
     }
     return true;
@@ -235,6 +243,8 @@ export function isWSOpener(ws: unknown): ws is WSOpener {
         typeof payload.handle !== 'string' ||
         !isEncryptedPayload(payload.devNonce)
     ) {
+        return false;
+    } else if (payload.deviceID.length === 0 || payload.handle.length === 0) {
         return false;
     } else {
         return true;
@@ -295,7 +305,7 @@ export function isWSComplete(ws: unknown): ws is WSComplete {
     const payload = <WSComplete>ws;
     if (typeof ws !== 'object' || ws === null || ws === undefined) {
         return false;
-    } else if (!('srvInc' in ws && 'srvNonce' in ws)) {
+    } else if (!('srvInc' in ws && 'config' in ws)) {
         return false;
     } else if (
         !isEncryptedPayload(payload.srvInc) ||
@@ -306,23 +316,7 @@ export function isWSComplete(ws: unknown): ws is WSComplete {
         return true;
     }
 }
-/**
- * Payload for creating a fingerprint
- */
-export interface HashPayload {
-    /**
-     * The ID for the device to fingerprint
-     */
-    deviceID: string;
-    /**
-     * The nonce to use for the fingerprint
-     */
-    nonce: string;
-    /**
-     * The password + salt hash, from scrypt
-     */
-    passhash: string;
-}
+
 /**
  * Payload for changing the password
  */
@@ -354,7 +348,10 @@ export function isNewPassword(pass: unknown): pass is NewPasswordPayload {
         typeof payload.newPassword !== 'string'
     ) {
         return false;
-    } else if (payload.newPassword.length === 0) {
+    } else if (
+        payload.newPassword.length === 0 ||
+        payload.handle.length === 0
+    ) {
         return false;
     } else {
         return true;
@@ -384,20 +381,9 @@ export function isDeletePayload(del: unknown): del is DeletePayload {
         typeof payload.hash !== 'string'
     ) {
         return false;
+    } else if (payload.handle.length === 0 || payload.hash.length === 0) {
+        return false;
     } else {
         return true;
     }
-}
-/**
- * Complete Password Hash
- */
-export interface PasswordHash {
-    /**
-     * The hash itself
-     */
-    hash: string;
-    /**
-     * The salt that was used during password hashing
-     */
-    salt: string;
 }
