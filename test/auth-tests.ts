@@ -15,7 +15,10 @@ import {
 import { socketDecrypt, socketEncrypt } from '../shared/auth';
 
 const VALID_PRINT = 'xiwEI89i5pxEIEpVcIbCGJGTpCwSyJaGF8ZzsKYK5P4=';
-const VALID_ENC: EncryptedPayload = { iv: 'ZGb8oBdHIngvKDpc3L6Dfg==', payload: 'bqLuS8c=' };
+const VALID_ENC: EncryptedPayload = {
+    iv: 'ZGb8oBdHIngvKDpc3L6Dfg==',
+    payload: 'bqLuS8c=',
+};
 describe('Authentication Unit Tests', function () {
     describe('Authentication Payload Unit Tests', function () {
         describe('New User Payload Unit Tests', function () {
@@ -555,22 +558,43 @@ describe('Authentication Unit Tests', function () {
                 expect(isWSOpener({})).to.be.false;
             });
             it('Should fail for no handle', function () {
-                expect(isWSOpener({ deviceID: 'TEST', devNonce: VALID_ENC })).to.be.false;
+                expect(isWSOpener({ deviceID: 'TEST', devNonce: VALID_ENC })).to
+                    .be.false;
             });
             it('Should fail for no deviceID', function () {
-                expect(isWSOpener({handle: 'TEST', devNonce: VALID_ENC })).to.be.false;
+                expect(isWSOpener({ handle: 'TEST', devNonce: VALID_ENC })).to
+                    .be.false;
             });
             it('Should fail for no nonce', function () {
-                expect(isWSOpener({ handle: 'TEST', deviceID: 'TEST' })).to.be.false;
+                expect(isWSOpener({ handle: 'TEST', deviceID: 'TEST' })).to.be
+                    .false;
             });
             it('Should fail for zero-length handle ', function () {
-                expect(isWSOpener({ handle: '', deviceID: 'TEST', devNonce: VALID_ENC })).to.be.false;
+                expect(
+                    isWSOpener({
+                        handle: '',
+                        deviceID: 'TEST',
+                        devNonce: VALID_ENC,
+                    }),
+                ).to.be.false;
             });
             it('Should fail for zero-length deviceID ', function () {
-                expect(isWSOpener({ handle: 'TEST', deviceID: '', devNonce: VALID_ENC })).to.be.false;
+                expect(
+                    isWSOpener({
+                        handle: 'TEST',
+                        deviceID: '',
+                        devNonce: VALID_ENC,
+                    }),
+                ).to.be.false;
             });
             it('Should pass for valid WebSocket Open Payload', function () {
-                expect(isWSOpener({ handle: 'TEST', deviceID: 'TEST', devNonce: VALID_ENC })).to.be.true;
+                expect(
+                    isWSOpener({
+                        handle: 'TEST',
+                        deviceID: 'TEST',
+                        devNonce: VALID_ENC,
+                    }),
+                ).to.be.true;
             });
         });
         describe('WebSocket Open Response Payload Unit Tests', function () {
@@ -590,7 +614,12 @@ describe('Authentication Unit Tests', function () {
                 expect(isWSOpenResponse({ devInc: VALID_ENC })).to.be.false;
             });
             it('Should pass for valid WebSocket Open Response Payload', function () {
-                expect(isWSOpenResponse({ srvNonce: VALID_ENC, devInc: VALID_ENC })).to.be.true;
+                expect(
+                    isWSOpenResponse({
+                        srvNonce: VALID_ENC,
+                        devInc: VALID_ENC,
+                    }),
+                ).to.be.true;
             });
         });
         describe('WebSocket Complete Payload Unit Tests', function () {
@@ -610,7 +639,8 @@ describe('Authentication Unit Tests', function () {
                 expect(isWSComplete({ srvInc: VALID_ENC })).to.be.false;
             });
             it('Should pass for valid WebSocket Complete Payload', function () {
-                expect(isWSComplete({ srvInc: VALID_ENC, config: {} })).to.be.true;
+                expect(isWSComplete({ srvInc: VALID_ENC, config: {} })).to.be
+                    .true;
             });
         });
     });
@@ -620,7 +650,8 @@ describe('Authentication Unit Tests', function () {
                 await expect(socketEncrypt('', 'hello')).to.be.rejected;
             });
             it('Should succeed for valid fingerprint', async function () {
-                await expect(socketEncrypt(VALID_PRINT, 'hello')).to.be.fulfilled;
+                await expect(socketEncrypt(VALID_PRINT, 'hello')).to.be
+                    .fulfilled;
             });
         });
         describe('Decryption Unit Tests', function () {
@@ -628,7 +659,9 @@ describe('Authentication Unit Tests', function () {
                 expect(() => socketDecrypt('', VALID_ENC)).to.throw();
             });
             it('Should succeed for valid fingerprint', function () {
-                expect(socketDecrypt(VALID_PRINT, VALID_ENC)).to.be.equal('hello');
+                expect(socketDecrypt(VALID_PRINT, VALID_ENC)).to.be.equal(
+                    'hello',
+                );
             });
         });
         it('Decrypt Should be inverse of Encrypt', async function () {
