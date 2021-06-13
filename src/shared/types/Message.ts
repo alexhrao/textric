@@ -19,6 +19,7 @@ export enum MessageType {
     AACK,
     ALIV,
     DATA,
+    MAX     // unused, for internal purposes
 }
 
 export interface Address {
@@ -341,4 +342,14 @@ export function isDatabasePayload(
     //     return true;
     // }
     return true;
+}
+
+export function isMessageType(msgType: unknown): msgType is MessageType {
+    if (typeof msgType !== 'object' || msgType === null || msgType === undefined) {
+        return false;
+    } else if (msgType.valueOf() >= -1 && msgType.valueOf() <= MessageType.MAX.valueOf()) {
+        return true;
+    } else {
+        return false;
+    }
 }
