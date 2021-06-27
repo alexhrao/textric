@@ -6,7 +6,6 @@ import {
     InternalSocket,
 } from '../server/queueService';
 import { isServerMessage, ServerMessage } from '../shared/types/Message';
-import { closeMongo, setupMongo } from './mongoUtils';
 import rewire from 'rewire';
 import {
     addDevice,
@@ -28,8 +27,6 @@ import { getClient } from '../server/mongoConnector';
 import WebSocket, { Server } from 'ws';
 const queueModule = rewire('../server/queueService');
 const queueDB: string = queueModule.__get__('QUEUE_DB');
-
-setupMongo();
 
 async function createUserWithDevice(complete = true) {
     const handle = await generateHandle();
@@ -56,12 +53,6 @@ async function createUserWithDevice(complete = true) {
 }
 
 describe('Queue Service Unit Tests', function () {
-    beforeEach(async function () {
-        //await resetMongo();
-    });
-    after(async function () {
-        await closeMongo();
-    });
     describe('Message Queueing Unit Tests', function () {
         it('Should not queue message for non-existent destination handle', async function () {
             const { user, device } = await createUserWithDevice();

@@ -17,7 +17,6 @@ import {
 } from '../server/user';
 import { fingerprint, generateNonce } from '../shared/auth';
 import { DeviceType, NONCE_LEN } from '../shared/types/authentication';
-import { closeMongo, setupMongo } from './mongoUtils';
 // monkeypatch
 import rewire from 'rewire';
 const userModule = rewire('../server/user');
@@ -31,16 +30,7 @@ const userConsts = {
 
 chai.use(asPromised);
 
-setupMongo();
-
 describe('User Unit Tests', function () {
-    beforeEach(async function () {
-        // Uncomment to scrub mongoDB clean
-        //await resetMongo();
-    });
-    after(async function () {
-        await closeMongo();
-    });
     it('Should generate valid handles', async function () {
         for (let i = 0; i < 10; ++i) {
             const handle = await generateHandle();
@@ -186,14 +176,6 @@ describe('User Unit Tests', function () {
 });
 
 describe('User Device Unit Tests', async function () {
-    beforeEach(async function () {
-        // Uncomment to scrub mongoDB clean
-        //await resetMongo();
-    });
-    after(async function () {
-        await closeMongo();
-    });
-
     it('Should not add device to non-existent user', async function () {
         const handle = 'NonexistentUser#12345';
         const deviceID = '12:34:56';

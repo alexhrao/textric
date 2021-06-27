@@ -7,8 +7,6 @@ import {
 } from 'crypto';
 import bigrandom from 'crypto-random-string';
 import {
-    HashPayload,
-    PasswordHash,
     SALT_LEN,
     KEY_LEN,
     HASH_ALG,
@@ -18,6 +16,36 @@ import {
 
 const WS_NONCE_LEN = 32;
 
+/**
+ * Payload for creating a fingerprint
+ */
+export interface HashPayload {
+    /**
+     * The ID for the device to fingerprint
+     */
+    deviceID: string;
+    /**
+     * The nonce to use for the fingerprint
+     */
+    nonce: string;
+    /**
+     * The password + salt hash, from scrypt
+     */
+    passhash: string;
+}
+/**
+ * Complete Password Hash
+ */
+export interface PasswordHash {
+    /**
+     * The hash itself
+     */
+    hash: string;
+    /**
+     * The salt that was used during password hashing
+     */
+    salt: string;
+}
 /**
  * Hash a password using Scrypt
  *
